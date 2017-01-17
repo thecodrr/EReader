@@ -9,12 +9,12 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="120"/>
+            <RowDefinition Height="80"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <RelativePanel x:Name="Header" Padding="20" VerticalAlignment="Center">
-            <TextBlock x:Name="Title" Text="Title" FontSize="48" HorizontalAlignment="Left"/>
+        <RelativePanel x:Name="Header" Grid.Row="0" Margin="20" VerticalAlignment="Center">
+            <TextBlock x:Name="Title" Text="Title" FontSize="36" HorizontalAlignment="Left"/>
         </RelativePanel>
-        <Page x:Name="ContentPage" Grid.Row="1"/>
+        <Frame x:Name="ContentFrame" Grid.Row="1"/>
     </Grid>
 </Page>
