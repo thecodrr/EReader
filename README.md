@@ -15,4 +15,4 @@ Access the issues tab of the EReader repository, which requires a Github account
 
 ## I want to submit a pull request
 
-It is suggested that you familiarize yourself with us and read the documentation for EReader first before submitting a pull request. If the code submission follows our guidelines and has a detailed commit message describing your changes.
+It is suggested that you familiarize yourself with us and read the documentation for EReader first before submitting a pull request. If the code submission follows our guidelines and has a detailed commit message describing your changes the pull request will be reviewed for merge.
