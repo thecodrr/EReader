@@ -12,8 +12,8 @@
             <RowDefinition Height="80"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <RelativePanel x:Name="Header" Grid.Row="0" Margin="20" VerticalAlignment="Center">
-            <TextBlock x:Name="Title" Text="Title" FontSize="36" HorizontalAlignment="Left"/>
+        <RelativePanel x:Name="headerPanel" Grid.Row="0" Margin="20" VerticalAlignment="Center">
+            <TextBlock x:Name="titleTextBlock" Text="Title" FontSize="36" HorizontalAlignment="Left"/>
         </RelativePanel>
         <Frame x:Name="ContentFrame" Grid.Row="1"/>
     </Grid>
