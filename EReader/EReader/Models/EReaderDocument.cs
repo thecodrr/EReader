@@ -8,7 +8,7 @@ using Windows.Storage;
 
 namespace EReader.Models
 {
-    class EReaderDocument
+    public class EReaderDocument
     {
         private string _title;
 

@@ -5,6 +5,7 @@
     xmlns:local="using:EReader.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    DataContext="{Binding LibraryViewModel, Source={StaticResource Locator}}"
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -13,9 +14,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button x:Name="AddNewFileButton" Content="Add New File" Click="AddNewFileButton_ClickAsync"/>
+            <Button x:Name="AddNewFileButton" Content="Add New File" Command="{Binding OpenFilePickerCommand}"/>
         </StackPanel>
         <ListView x:Name="DocumentList"
+                  ItemsSource="{Binding EReaderDocuments}"
                   SelectionMode="None"
                   IsItemClickEnabled="True"
                   Grid.Row="1"
