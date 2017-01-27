@@ -1,6 +1,9 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0"
+    "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2",
+    "MvvmDialogs": "4.0.0",
+    "MvvmLight": "5.3.0",
+    "MvvmLightLibs": "5.3.0"
   },
   "frameworks": {
     "uap10.0": {}
