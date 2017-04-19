@@ -133,7 +133,7 @@ namespace EReader.Epub
             if (!File.Exists(fullBookPath))
             {
                 eBook.BookStyleCSS = await ReadCSSFiles();
-                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{margin:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
+                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
                 html += await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
                 html += "</body></html>";
                 fullBook = await SaveBookAsync(html, opfContent.Metadata);
@@ -150,10 +150,12 @@ namespace EReader.Epub
         #region Save Methods
         private async Task<StorageFile> SaveBookAsync(string html, Metadata data)
         {
-            string path = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(data.Title) + ".html");
+            string bookName = DirectoryHelper.GetSafeFilename(data.Title) + ".html";
+            string path = Path.Combine(EpubTextFolder.Path, bookName);
+
             if (!File.Exists(path))
             {
-                var fullBook = await EpubTextFolder.CreateFileAsync(path, CreationCollisionOption.FailIfExists);
+                var fullBook = await EpubTextFolder.CreateFileAsync(bookName, CreationCollisionOption.OpenIfExists);
                 await FileIO.WriteTextAsync(fullBook, EReader.Epub.Helpers.Minifiers.MinifyHTML(html), Windows.Storage.Streams.UnicodeEncoding.Utf8);
                 return fullBook;
             }
