@@ -1,81 +1,76 @@
-﻿using EReader.Models;
-using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Command;
-using MvvmDialogs;
-using MvvmDialogs.FrameworkPickers.FileOpen;
-using MvvmDialogs.FrameworkPickers.Folder;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Windows.Storage;
-using Windows.Storage.AccessCache;
-using Windows.Storage.Pickers;
+﻿//using EReader.Models;
+//using System;
+//using System.Collections.Generic;
+//using System.Collections.ObjectModel;
+//using System.Diagnostics;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
+//using System.Windows.Input;
+//using Windows.Storage;
+//using Windows.Storage.AccessCache;
+//using Windows.Storage.Pickers;
 
-namespace EReader.ViewModels
-{
-    public class LibraryViewModel : ViewModelBase
-    {
-        private readonly MvvmDialogs.IDialogService dialogService;
+//namespace EReader.ViewModels
+//{
+//    public class LibraryViewModel : ViewModelBase
+//    {
+//        private readonly MvvmDialogs.IDialogService dialogService;
 
-        private ObservableCollection<EReaderDocument> _ereaderDocuments;
+//        private ObservableCollection<EReaderDocument> _ereaderDocuments;
 
-        public ObservableCollection<EReaderDocument> EReaderDocuments
-        {
-            get { return _ereaderDocuments; }
-            set { Set(ref _ereaderDocuments, value); }
-        }
+//        public ObservableCollection<EReaderDocument> EReaderDocuments
+//        {
+//            get { return _ereaderDocuments; }
+//            set { Set(ref _ereaderDocuments, value); }
+//        }
 
-        public ICommand OpenFilePickerCommand { get; private set; }
+//        public ICommand OpenFilePickerCommand { get; private set; }
 
-        public LibraryViewModel(IDialogService dialogService)
-        {
-            this.dialogService = dialogService;
+//        public LibraryViewModel(IDialogService dialogService)
+//        {
+//            this.dialogService = dialogService;
 
-            InitData();
+//            InitData();
 
-            InitCommands();
-        }
+//            InitCommands();
+//        }
 
-        private void InitData()
-        {
-            EReaderDocuments = new ObservableCollection<EReaderDocument>();
-        }
+//        private void InitData()
+//        {
+//            EReaderDocuments = new ObservableCollection<EReaderDocument>();
+//        }
 
-        private void InitCommands()
-        {
-            OpenFilePickerCommand = new RelayCommand(OpenFilePickerAsync);
-        }
+//        private void InitCommands()
+//        {
+//            OpenFilePickerCommand = new RelayCommand(OpenFilePickerAsync);
+//        }
 
-        private async void OpenFilePickerAsync()
-        {
-            var settings = new FileOpenPickerSettings
-            {
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                FileTypeFilter = new List<string> { ".txt" }
-            };
+//        private async void OpenFilePickerAsync()
+//        {
+//            var settings = new FileOpenPickerSettings
+//            {
+//                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+//                FileTypeFilter = new List<string> { ".txt" }
+//            };
 
-            IReadOnlyList<StorageFile> storageFiles = await dialogService.PickMultipleFilesAsync(settings);
+//            IReadOnlyList<StorageFile> storageFiles = await dialogService.PickMultipleFilesAsync(settings);
 
-            if (storageFiles.Any())
-            {
-                foreach (var file in storageFiles)
-                {
-                    var token = StorageApplicationPermissions.FutureAccessList.Add(file);
+//            if (storageFiles.Any())
+//            {
+//                foreach (var file in storageFiles)
+//                {
+//                    var token = StorageApplicationPermissions.FutureAccessList.Add(file);
 
-                    StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
-                    StorageFile folderTokens = await storageFolder.CreateFileAsync("folderTokens.txt", CreationCollisionOption.ReplaceExisting);
-                    Debug.WriteLine(storageFolder.Path);
+//                    StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+//                    StorageFile folderTokens = await storageFolder.CreateFileAsync("folderTokens.txt", CreationCollisionOption.ReplaceExisting);
+//                    Debug.WriteLine(storageFolder.Path);
 
-                    EReaderDocuments.Add(new EReaderDocument(file));
+//                    EReaderDocuments.Add(new EReaderDocument(file));
 
-                    await FileIO.AppendTextAsync(folderTokens, token + ",");
-                }
-            }
-        }
-    }
-}
+//                    await FileIO.AppendTextAsync(folderTokens, token + ",");
+//                }
+//            }
+//        }
+//    }
+//}

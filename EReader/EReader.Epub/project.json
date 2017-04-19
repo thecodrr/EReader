@@ -1,6 +1,8 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
+    "AngleSharp": "0.9.9",
+    "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.3",
+    "System.ValueTuple": "4.3.0"
   },
   "frameworks": {
     "uap10.0": {}

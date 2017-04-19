@@ -6,6 +6,5 @@
     xmlns:vm="using:EReader.Mvvm"
     RequestedTheme="Light">
     <Application.Resources>
-        <vm:ViewModelLocator xmlns:vm="using:EReader.Mvvm" x:Key="Locator" />
     </Application.Resources>
 </Application>

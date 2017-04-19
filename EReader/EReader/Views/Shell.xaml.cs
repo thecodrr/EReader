@@ -25,7 +25,7 @@ namespace EReader.Views
         public Shell()
         {
             this.InitializeComponent();
-            this.ContentFrame.Navigate(typeof (LibraryView));
+            this.ContentFrame.Navigate(typeof (DocumentView));
         }
     }
 }
