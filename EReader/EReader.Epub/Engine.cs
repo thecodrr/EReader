@@ -18,19 +18,13 @@ namespace EReader.Epub
 {
     public class Engine
     {
+        #region Properties
         private StorageFolder RootEpubFolder { get; set; }
         private StorageFolder OPFFolder { get; set; }
-        public StorageFolder EpubTextFolder { get; set; }
-        private async Task<StorageFolder> ExtractEpubFileAsync(string epubFilePath)
-        {
-            return await Task.Run(async () =>
-            {
-                var localFolder = ApplicationData.Current.LocalFolder;
-                if (!Directory.Exists(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath)))
-                    ZipFile.ExtractToDirectory(epubFilePath, localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
-                return await StorageFolder.GetFolderFromPathAsync(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
-            });
-        }
+        private StorageFolder EpubTextFolder { get; set; }
+        #endregion
+
+        #region Read Methods
         private async Task<TOC> ReadTOC(OPFDocument metadata)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(TOC));
@@ -45,7 +39,7 @@ namespace EReader.Epub
         {
             if (RootEpubFolder != null)
             {
-                var query = RootEpubFolder.CreateFileQueryWithOptions(DirectoryHelper.GetQueryOptions(new string[] { ".css"}));
+                var query = RootEpubFolder.CreateFileQueryWithOptions(DirectoryHelper.GetQueryOptions(new string[] { ".css" }));
                 string css = "";
                 foreach (var file in await query.GetFilesAsync())
                 {
@@ -62,7 +56,7 @@ namespace EReader.Epub
             if (RootEpubFolder != null)
             {
                 var metainfFolder = await RootEpubFolder.GetFolderAsync("META-INF");
-                if(metainfFolder != null)
+                if (metainfFolder != null)
                 {
                     Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(metainfFolder);
                     var containerXPath = Path.Combine(metainfFolder.Path, "container.xml");
@@ -83,6 +77,44 @@ namespace EReader.Epub
             }
             return null;
         }
+        #endregion
+
+        #region Parse Methods
+        private async Task<string> ParseChapterFiles(List<Itemref> Spine, List<Item> Items)
+        {
+            string html = "";
+            foreach (var page in Spine)
+            {
+                string pageID = page.Idref;
+                string pageLink = Items.FirstOrDefault(t => t.Id == pageID).Href;
+
+                var chapterFile = await StorageFile.GetFileFromPathAsync(DirectoryHelper.GetChapterFilePath(OPFFolder.Path, pageLink));
+                // Create a new parser front-end (can be re-used)
+                var parser = new HtmlParser();
+                //Just get the DOM representation
+                var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile));
+                html += document.Body.InnerHtml;
+                await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                GC.Collect();
+            }
+            return html;
+        }
+        #endregion
+
+        #region Extract Methods
+        private async Task<StorageFolder> ExtractEpubFileAsync(string epubFilePath)
+        {
+            return await Task.Run(async () =>
+            {
+                var localFolder = ApplicationData.Current.LocalFolder;
+                if (!Directory.Exists(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath)))
+                    ZipFile.ExtractToDirectory(epubFilePath, localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
+                return await StorageFolder.GetFolderFromPathAsync(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
+            });
+        }
+        #endregion
+
+        #region Book Read Methods
         public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file, bool loadExtras)
         {
             var folder = await ExtractEpubFileAsync(file.Path);
@@ -94,9 +126,9 @@ namespace EReader.Epub
             var opfContent = await ReadMetadata();
             var tocContent = await ReadTOC(opfContent);
             var eBook = new Book();
-            var path = GetChapterFilePath(tocContent.NavMap.Chapters[0].ChapterLink);
+            var path = DirectoryHelper.GetChapterFilePath(OPFFolder.Path, tocContent.NavMap.Chapters[0].ChapterLink);
             EpubTextFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(path));
-            var fullBookPath = Path.Combine(EpubTextFolder.Path, GetSafeFilename(opfContent.Metadata.Title) + ".html");
+            var fullBookPath = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(opfContent.Metadata.Title) + ".html");
             StorageFile fullBook = null;
             if (!File.Exists(fullBookPath))
             {
@@ -110,51 +142,24 @@ namespace EReader.Epub
                 fullBook = await StorageFile.GetFileFromPathAsync(fullBookPath);
             eBook.Chapters = tocContent.NavMap.Chapters;
             eBook.Metadata = opfContent.Metadata;
-            return (eBook, fullBook);            
+            return (eBook, fullBook);
         }
-        private async Task<string> ParseChapterFiles(List<Itemref> Spine, List<Item> Items)
-        {
-            string html = "";
-            foreach (var page in Spine)
-            {
-                string pageID = page.Idref;
-                string pageLink = Items.FirstOrDefault(t => t.Id == pageID).Href;
 
-                var chapterFile = await StorageFile.GetFileFromPathAsync(GetChapterFilePath(pageLink));
-                // Create a new parser front-end (can be re-used)
-                var parser = new HtmlParser();
-                //Just get the DOM representation
-                var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile));
-                html += document.Body.InnerHtml;
-                await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
-                GC.Collect();
-            }
-            return html;
-        }
-        private string GetChapterFilePath(string chapterLink)
-        {
-            var path = Path.Combine(OPFFolder.Path, System.Net.WebUtility.HtmlDecode(chapterLink).Replace("/", "\\"));
-            if (path.Contains("#"))
-            {
-                path = path.Remove(path.IndexOf('#') - 0);
-            }
-            return Uri.UnescapeDataString(path);
-        }
+        #endregion
+
+        #region Save Methods
         private async Task<StorageFile> SaveBookAsync(string html, Metadata data)
         {
-            if (!File.Exists(Path.Combine(EpubTextFolder.Path, GetSafeFilename(data.Title) + ".html")))
+            string path = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(data.Title) + ".html");
+            if (!File.Exists(path))
             {
-                var fullBook = await EpubTextFolder.CreateFileAsync(GetSafeFilename(data.Title) + ".html", CreationCollisionOption.FailIfExists);
+                var fullBook = await EpubTextFolder.CreateFileAsync(path, CreationCollisionOption.FailIfExists);
                 await FileIO.WriteTextAsync(fullBook, EReader.Epub.Helpers.Minifiers.MinifyHTML(html), Windows.Storage.Streams.UnicodeEncoding.Utf8);
                 return fullBook;
             }
             else
-                return await StorageFile.GetFileFromPathAsync(Path.Combine(EpubTextFolder.Path, GetSafeFilename(data.Title) + ".html"));
-        }     
-        
-        private string GetSafeFilename(string filename)
-        {
-            return string.Join("", filename.Split(Path.GetInvalidFileNameChars()));
+                return await StorageFile.GetFileFromPathAsync(path);
         }
+        #endregion
     }
 }

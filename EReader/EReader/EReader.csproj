@@ -96,6 +96,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Extensions\VisualTreeHelperExtensions.cs" />
+    <Compile Include="Helpers\StorageFileHelper.cs" />
     <Compile Include="Models\EReaderDocument.cs" />
     <Compile Include="Models\Tag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -148,10 +149,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\waslibs\src\AppStudio.Uwp\AppStudio.Uwp.csproj">
-      <Project>{ecedcde9-e70e-4673-a4e9-ffb437b32c0e}</Project>
-      <Name>AppStudio.Uwp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\EReader.Epub\EReader.Epub.csproj">
       <Project>{72458530-ebc1-4926-84fe-8a2a26f6a9fd}</Project>
       <Name>EReader.Epub</Name>
