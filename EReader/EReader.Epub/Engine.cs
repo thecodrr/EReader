@@ -94,8 +94,8 @@ namespace EReader.Epub
                 var parser = new HtmlParser();
                 //Just get the DOM representation
                 var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile));
-
-                html += string.Format("<p id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
+                //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
+                html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
                 html += document.Body.InnerHtml;
                 await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
                 GC.Collect();
@@ -187,9 +187,14 @@ namespace EReader.Epub
                         anchor.SetAttribute("href", repairedLink);
                 }
             }
-            foreach (var image in document.QuerySelectorAll("img"))
+            foreach (var image in document.QuerySelectorAll("img, image"))
             {
-                image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
+                if (image.Attributes["src"] != null)
+                    image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
+                else if (image.Attributes["src"] == null && image.Attributes["href"] != null) //is svg, parse differently
+                {
+                    image.SetAttribute("href", image.Attributes["href"].Value.Remove(0, image.Attributes["href"].Value.LastIndexOf('/') + 1));
+                }
             }
             return document.Body.InnerHtml;
         }
@@ -205,6 +210,7 @@ namespace EReader.Epub
             }
             else if (link.EndsWith(".html") || link.EndsWith(".xml") || link.EndsWith(".xhtml")) // repair needed here 
             {
+                //hack for relative paths
                 link = link.Replace("\\", "/");
                 if (link.StartsWith(".") || link.Contains("/"))
                     link = link.Remove(0, link.LastIndexOf("/"));
