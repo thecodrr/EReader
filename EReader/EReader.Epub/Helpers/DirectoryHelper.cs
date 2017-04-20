@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.Storage.FileProperties;
 using Windows.Storage.Search;
 
@@ -29,6 +30,17 @@ namespace EReader.Epub.Helpers
         public static string GetSafeFilename(string filename)
         {
             return string.Join("", filename.Split(Path.GetInvalidFileNameChars()));
+        }
+        public static async Task<StorageFile> GetFullPathFromRelativePath(StorageFolder rootFolder, string relativePath)
+        {
+            if (relativePath.StartsWith("../"))
+            {
+                var folderUp = await rootFolder.GetParentAsync();
+                string path = relativePath.Remove(0,2).Replace("/","\\");
+                string fullPath = folderUp.Path + path;
+                return await StorageFile.GetFileFromPathAsync(fullPath); 
+            }
+            return null;
         }
     }
 }

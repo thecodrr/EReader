@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Windows.Storage;
@@ -93,10 +94,13 @@ namespace EReader.Epub
                 var parser = new HtmlParser();
                 //Just get the DOM representation
                 var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile));
+
+                html += string.Format("<p id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
                 html += document.Body.InnerHtml;
                 await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
                 GC.Collect();
             }
+          
             return html;
         }
         #endregion
@@ -132,10 +136,12 @@ namespace EReader.Epub
             StorageFile fullBook = null;
             if (!File.Exists(fullBookPath))
             {
+                await MoveAllImagesAsync(opfContent);
                 eBook.BookStyleCSS = await ReadCSSFiles();
                 string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
-                html += await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
-                html += "</body></html>";
+                string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
+                html += await RepairHtml(chapters);
+                html += "</body></html>";                
                 fullBook = await SaveBookAsync(html, opfContent.Metadata);
             }
             else
@@ -163,5 +169,72 @@ namespace EReader.Epub
                 return await StorageFile.GetFileFromPathAsync(path);
         }
         #endregion
+
+        private async Task<string> RepairHtml(string html)
+        {
+            var parser = new HtmlParser();
+            //Just get the DOM representation
+            var document = await parser.ParseAsync(html);
+            int index = 0;
+            foreach (var anchor in document.QuerySelectorAll("a"))
+            {
+                if (anchor.Attributes["href"] == null && string.IsNullOrEmpty(anchor.InnerHtml))
+                    anchor.Remove();
+                else if (anchor.Attributes["href"] != null)
+                {
+                    string repairedLink = RepairLink(anchor.Attributes["href"].Value);
+                    if(!string.IsNullOrEmpty(repairedLink))
+                        anchor.SetAttribute("href", repairedLink);
+                }
+            }
+            foreach (var image in document.QuerySelectorAll("img"))
+            {
+                image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
+            }
+            return document.Body.InnerHtml;
+        }
+        public string RepairLink(string link)
+        {
+            if (string.IsNullOrEmpty(link))
+                return null;
+            if (link.StartsWith("#")) //means it is a path to an id which we don't want to repair
+                return link;
+            if (link.Contains("#")) //is a potential id
+            {
+                return link.Remove(0, link.IndexOf("#"));
+            }
+            else if (link.EndsWith(".html") || link.EndsWith(".xml") || link.EndsWith(".xhtml")) // repair needed here 
+            {
+                link = link.Replace("\\", "/");
+                if (link.StartsWith(".") || link.Contains("/"))
+                    link = link.Remove(0, link.LastIndexOf("/"));
+                //make an id link
+                return "#" + DirectoryHelper.GetSafeFilename(link.Substring(0, link.LastIndexOf("."))) + "-ch"; //we are sure there will be no space in the link as spaces are not accepted in html linking.
+            }
+            
+            return link; //nothing worked so just return the original link
+        }
+        private string FindOrSetHeaderID(IElement header, int index)
+        {
+            if (header.Attributes["id"] == null)
+            {
+                var id = Regex.Replace(header.TextContent.ToLower(), "[^a-zA-Z0-9]", "");
+                header.SetAttribute("id", "ch-" + index + "-" + id.Replace(" ",""));
+            }
+            return header.Attributes["id"].Value;
+        }
+        private async Task MoveAllImagesAsync(OPFDocument document)
+        {
+            foreach (var image in document.Manifest.Item.Where(t => t.Mediatype.Contains("image"))) //image can be any type so we don't specify the exact mediatype.
+            {
+                var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/','\\'));
+                if (File.Exists(imagePath) && OPFFolder.Path != EpubTextFolder.Path)
+                {
+                    var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
+                    await imageFile.CopyAsync(EpubTextFolder);
+                    await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                }
+            }
+        }
     }
 }

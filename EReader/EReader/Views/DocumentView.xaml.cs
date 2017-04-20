@@ -21,7 +21,7 @@ namespace EReader.Views
             FileOpenPicker picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".epub");
             var file = await picker.PickSingleFileAsync();
-            if(file != null)
+            if (file != null)
             {
                 Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
                 EReader.Epub.Engine engine = new Epub.Engine();
@@ -30,11 +30,10 @@ namespace EReader.Views
                 DocumentViewer.Navigate(new Uri(uri));
                 GC.Collect();
             }
-
             DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
         }
-        
-     
+
+
         private async void DocumentViewer_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
         {
             args.Cancel = true;
