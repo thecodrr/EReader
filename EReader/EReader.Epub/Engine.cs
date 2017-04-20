@@ -95,14 +95,17 @@ namespace EReader.Epub
                 var chapterFile = await StorageFile.GetFileFromPathAsync(DirectoryHelper.GetChapterFilePath(OPFFolder.Path, pageLink));
                 // Create a new parser front-end (can be re-used)
                 HtmlParser parser = new HtmlParser();
-                using (var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile)))
-                {       //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
-                    html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
-                    html += document.Body.InnerHtml;
+                using (FileStream fs = File.Open(chapterFile.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var document = await parser.ParseAsync(fs))
+                    {       //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
+                        html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
+                        html += document.Body.InnerHtml;
+                    }
                 }
                 await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
             }
-          
+
             return html;
         }
         #endregion
