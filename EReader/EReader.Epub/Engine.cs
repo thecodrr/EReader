@@ -100,6 +100,7 @@ namespace EReader.Epub
                     using (var document = await parser.ParseAsync(fs))
                     {       //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
                         html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
+                        //document.Body.FirstElementChild.SetAttribute("id", document.Body.Attributes["id"]?.Value);
                         html += document.Body.InnerHtml;
                     }
                 }
@@ -141,7 +142,7 @@ namespace EReader.Epub
             {
                 return await ReadEpubAsync(folder, loadExtras);
             }
-            return (null,null);
+            return (null, null);
         }
         private async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder, bool loadExtras)
         {
@@ -160,7 +161,7 @@ namespace EReader.Epub
                 string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
                 string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
                 html += await RepairHtml(chapters);
-                html += "</body></html>";                
+                html += "</body></html>";
                 fullBook = await SaveBookAsync(html, opfContent.Metadata);
             }
             else
@@ -176,7 +177,7 @@ namespace EReader.Epub
         private async Task<StorageFile> SaveBookAsync(string html, Metadata data)
         {
             string bookName = DirectoryHelper.GetSafeFilename(data.Title) + ".html";
-       
+
             string path = Path.Combine(EpubTextFolder.Path, bookName);
 
             if (!File.Exists(path))
@@ -228,9 +229,9 @@ namespace EReader.Epub
                 return link;
             if (link.Contains("#")) //is a potential id
             {
-                return link.Remove(0, link.IndexOf("#"));
+                link = link.Remove(link.IndexOf("#"));
             }
-            else if (link.EndsWith(".html") || link.EndsWith(".xml") || link.EndsWith(".xhtml")) // repair needed here 
+            if (link.EndsWith(".html") || link.EndsWith(".xml") || link.EndsWith(".xhtml")) // repair needed here 
             {
                 //hack for relative paths
                 link = link.Replace("\\", "/");
@@ -239,7 +240,7 @@ namespace EReader.Epub
                 //make an id link
                 return "#" + DirectoryHelper.GetSafeFilename(link.Substring(0, link.LastIndexOf("."))) + "-ch"; //we are sure there will be no space in the link as spaces are not accepted in html linking.
             }
-            
+
             return link; //nothing worked so just return the original link
         }
         private string FindOrSetHeaderID(IElement header, int index)
@@ -247,7 +248,7 @@ namespace EReader.Epub
             if (header.Attributes["id"] == null)
             {
                 var id = Regex.Replace(header.TextContent.ToLower(), "[^a-zA-Z0-9]", "");
-                header.SetAttribute("id", "ch-" + index + "-" + id.Replace(" ",""));
+                header.SetAttribute("id", "ch-" + index + "-" + id.Replace(" ", ""));
             }
             return header.Attributes["id"].Value;
         }
@@ -255,20 +256,18 @@ namespace EReader.Epub
         {
             foreach (var image in document.Manifest.Item.Where(t => t.Mediatype.Contains("image"))) //image can be any type so we don't specify the exact mediatype.
             {
-                var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/','\\'));
-               
+                var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/', '\\'));
+
                 if (File.Exists(imagePath))
                 {
                     var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
                     var parentImageFolder = (await imageFile.GetParentAsync());
-                    if (OPFFolder.Path != parentImageFolder.Path)
+                    if (!File.Exists(Path.Combine(EpubTextFolder.Path, Path.GetFileName(imageFile.Path))))
                     {
-                        if (!File.Exists(Path.Combine(EpubTextFolder.Path, Path.GetFileName(imageFile.Path))))
-                        {
-                            await imageFile.CopyAsync(EpubTextFolder);
-                            await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
-                        }
+                        await imageFile.CopyAsync(EpubTextFolder);
+                        await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
                     }
+
                 }
             }
         }
