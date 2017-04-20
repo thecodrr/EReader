@@ -20,6 +20,14 @@ using Windows.UI.Xaml;
 
 namespace EReader.Epub
 {
+    /// <summary>
+    /// The engine runs in 5 steps:
+    /// 1. Extract EPUB Contents
+    /// 2. Read eBook Metadata, TOC & CSS Files
+    /// 3. Move all images to the folder where complete book's html will be.
+    /// 4. Parse and combine all eBook's chapters.
+    /// 5. Save the parsed result into a .html file.
+    /// </summary>
     public class Engine
     {
         #region Properties
@@ -28,7 +36,81 @@ namespace EReader.Epub
         private StorageFolder EpubTextFolder { get; set; }
         #endregion
 
+        #region Central Methods
+        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file, bool loadExtras)
+        {
+            var folder = await ExtractEpubFileAsync(file.Path);
+            if (folder != null)
+            {
+                return await ReadEpubAsync(folder, loadExtras);
+            }
+            return (null, null);
+        }
+        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder, bool loadExtras)
+        {
+            RootEpubFolder = rootFolder;
+            var opfContent = await ReadMetadata();
+            var tocContent = await ReadTOC(opfContent);
+            var eBook = new Book();
+            var path = DirectoryHelper.GetChapterFilePath(OPFFolder.Path, opfContent.Manifest.Item.FirstOrDefault(t => t.Mediatype == "application/xhtml+xml").Href);
+            EpubTextFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(path));
+            var fullBookPath = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(opfContent.Metadata.Title) + ".html");
+            StorageFile fullBook = null;
+            if (!File.Exists(fullBookPath))
+            {
+                await MoveAllImagesAsync(opfContent);
+                eBook.BookStyleCSS = await ReadCSSFiles();
+                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
+                string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
+                html += await HtmlRepairer.HtmlRepairer.RepairHtml(chapters);
+                html += "</body></html>";
+                fullBook = await SaveBookAsync(html, opfContent.Metadata);
+            }
+            else
+                fullBook = await StorageFile.GetFileFromPathAsync(fullBookPath);
+            eBook.Chapters = tocContent.NavMap.Chapters;
+            eBook.Metadata = opfContent.Metadata;
+            return (eBook, fullBook);
+        }
+
+        #endregion
+
+        #region Private Methods
+        //step 1
+        #region Extract Methods
+        /// <summary>
+        /// Step 1: Extract Epub File
+        /// </summary>
+        /// <param name="epubFilePath"></param>
+        /// <returns></returns>
+        private async Task<StorageFolder> ExtractEpubFileAsync(string epubFilePath)
+        {
+            return await Task.Run(async () =>
+            {
+                var localFolder = ApplicationData.Current.LocalFolder;
+                var extractedPath = localFolder.Path + "\\" + DirectoryHelper.GetSafeFilename(Path.GetFileNameWithoutExtension(epubFilePath)).Trim();
+                if (!Directory.Exists(extractedPath))
+                {
+                    try
+                    {
+                        ZipFile.ExtractToDirectory(epubFilePath, extractedPath);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        return null;
+                    }
+                }
+                return await StorageFolder.GetFolderFromPathAsync(extractedPath);
+            });
+        }
+        #endregion
+        //step 2
         #region Read Methods
+        /// <summary>
+        /// Step 2: Read TOC
+        /// </summary>
+        /// <param name="metadata"></param>
+        /// <returns>Table Of Contents of the EPUB</returns>
         private async Task<TOC> ReadTOC(OPFDocument metadata)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(TOC));
@@ -39,6 +121,10 @@ namespace EReader.Epub
                 return (TOC)deserializer.Deserialize(stream);
             }
         }
+        /// <summary>
+        /// Step 2: Read & Save CSS Files
+        /// </summary>
+        /// <returns>Minified CSS</returns>
         private async Task<string> ReadCSSFiles()
         {
             if (RootEpubFolder != null)
@@ -54,6 +140,10 @@ namespace EReader.Epub
             }
             return null;
         }
+        /// <summary>
+        /// Step 2: Read Metadata (OPF file).
+        /// </summary>
+        /// <returns>Formatted OPFDocument with all the metadata and book info.</returns>
         private async Task<OPFDocument> ReadMetadata()
         {
             XmlSerializer deserializer;
@@ -82,8 +172,41 @@ namespace EReader.Epub
             return null;
         }
         #endregion
+        //step 3
+        #region Move Methods
+        /// <summary>
+        /// Step 3: Move all images to main folder.
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        private async Task MoveAllImagesAsync(OPFDocument document)
+        {
+            foreach (var image in document.Manifest.Item.Where(t => t.Mediatype.Contains("image"))) //image can be any type so we don't specify the exact mediatype.
+            {
+                var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/', '\\'));
 
+                if (File.Exists(imagePath))
+                {
+                    var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
+                    var parentImageFolder = (await imageFile.GetParentAsync());
+                    if (!File.Exists(Path.Combine(EpubTextFolder.Path, Path.GetFileName(imageFile.Path))))
+                    {
+                        await imageFile.CopyAsync(EpubTextFolder);
+                        await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                    }
+
+                }
+            }
+        }
+        #endregion
+        //step 4
         #region Parse Methods
+        /// <summary>
+        /// Step 4: Parse all chapter files and combine them into one html
+        /// </summary>
+        /// <param name="Spine"></param>
+        /// <param name="Items"></param>
+        /// <returns></returns>
         private async Task<string> ParseChapterFiles(List<Itemref> Spine, List<Item> Items)
         {
             string html = "";
@@ -110,70 +233,14 @@ namespace EReader.Epub
             return html;
         }
         #endregion
-
-        #region Extract Methods
-        private async Task<StorageFolder> ExtractEpubFileAsync(string epubFilePath)
-        {
-            return await Task.Run(async () =>
-            {
-                var localFolder = ApplicationData.Current.LocalFolder;
-                var extractedPath = localFolder.Path + "\\" + DirectoryHelper.GetSafeFilename(Path.GetFileNameWithoutExtension(epubFilePath)).Trim();
-                if (!Directory.Exists(extractedPath))
-                {
-                    try
-                    {
-                        ZipFile.ExtractToDirectory(epubFilePath, extractedPath);
-                    }
-                    catch (InvalidDataException)
-                    {
-                        return null;
-                    }
-                }
-                return await StorageFolder.GetFolderFromPathAsync(extractedPath);
-            });
-        }
-        #endregion
-
-        #region Book Read Methods
-        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file, bool loadExtras)
-        {
-            var folder = await ExtractEpubFileAsync(file.Path);
-            if (folder != null)
-            {
-                return await ReadEpubAsync(folder, loadExtras);
-            }
-            return (null, null);
-        }
-        private async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder, bool loadExtras)
-        {
-            RootEpubFolder = rootFolder;
-            var opfContent = await ReadMetadata();
-            var tocContent = await ReadTOC(opfContent);
-            var eBook = new Book();
-            var path = DirectoryHelper.GetChapterFilePath(OPFFolder.Path, opfContent.Manifest.Item.FirstOrDefault(t => t.Mediatype == "application/xhtml+xml").Href);
-            EpubTextFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(path));
-            var fullBookPath = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(opfContent.Metadata.Title) + ".html");
-            StorageFile fullBook = null;
-            if (!File.Exists(fullBookPath))
-            {
-                await MoveAllImagesAsync(opfContent);
-                eBook.BookStyleCSS = await ReadCSSFiles();
-                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
-                string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
-                html += await RepairHtml(chapters);
-                html += "</body></html>";
-                fullBook = await SaveBookAsync(html, opfContent.Metadata);
-            }
-            else
-                fullBook = await StorageFile.GetFileFromPathAsync(fullBookPath);
-            eBook.Chapters = tocContent.NavMap.Chapters;
-            eBook.Metadata = opfContent.Metadata;
-            return (eBook, fullBook);
-        }
-
-        #endregion
-
+        //step 5
         #region Save Methods
+        /// <summary>
+        /// Step 5: Save the book into a .html file
+        /// </summary>
+        /// <param name="html"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private async Task<StorageFile> SaveBookAsync(string html, Metadata data)
         {
             string bookName = DirectoryHelper.GetSafeFilename(data.Title) + ".html";
@@ -191,85 +258,6 @@ namespace EReader.Epub
         }
         #endregion
 
-        private async Task<string> RepairHtml(string html)
-        {
-            var parser = new HtmlParser();
-            //Just get the DOM representation
-            using (var document = await parser.ParseAsync(html))
-            {
-                int index = 0;
-                foreach (var anchor in document.QuerySelectorAll("a"))
-                {
-                    if (anchor.Attributes["href"] == null && string.IsNullOrEmpty(anchor.InnerHtml))
-                        anchor.Remove();
-                    else if (anchor.Attributes["href"] != null)
-                    {
-                        string repairedLink = RepairLink(anchor.Attributes["href"].Value);
-                        if (!string.IsNullOrEmpty(repairedLink))
-                            anchor.SetAttribute("href", repairedLink);
-                    }
-                }
-                foreach (var image in document.QuerySelectorAll("img, image"))
-                {
-                    if (image.Attributes["src"] != null)
-                        image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
-                    else if (image.Attributes["src"] == null && image.Attributes["href"] != null) //is svg, parse differently
-                    {
-                        image.SetAttribute("href", image.Attributes["href"].Value.Remove(0, image.Attributes["href"].Value.LastIndexOf('/') + 1));
-                    }
-                }
-                return document.Body.InnerHtml;
-            }
-        }
-        public string RepairLink(string link)
-        {
-            if (string.IsNullOrEmpty(link))
-                return null;
-            if (link.StartsWith("#")) //means it is a path to an id which we don't want to repair
-                return link;
-            if (link.Contains("#")) //is a potential id
-            {
-                link = link.Remove(link.IndexOf("#"));
-            }
-            if (link.EndsWith(".html") || link.EndsWith(".xml") || link.EndsWith(".xhtml")) // repair needed here 
-            {
-                //hack for relative paths
-                link = link.Replace("\\", "/");
-                if (link.StartsWith(".") || link.Contains("/"))
-                    link = link.Remove(0, link.LastIndexOf("/"));
-                //make an id link
-                return "#" + DirectoryHelper.GetSafeFilename(link.Substring(0, link.LastIndexOf("."))) + "-ch"; //we are sure there will be no space in the link as spaces are not accepted in html linking.
-            }
-
-            return link; //nothing worked so just return the original link
-        }
-        private string FindOrSetHeaderID(IElement header, int index)
-        {
-            if (header.Attributes["id"] == null)
-            {
-                var id = Regex.Replace(header.TextContent.ToLower(), "[^a-zA-Z0-9]", "");
-                header.SetAttribute("id", "ch-" + index + "-" + id.Replace(" ", ""));
-            }
-            return header.Attributes["id"].Value;
-        }
-        private async Task MoveAllImagesAsync(OPFDocument document)
-        {
-            foreach (var image in document.Manifest.Item.Where(t => t.Mediatype.Contains("image"))) //image can be any type so we don't specify the exact mediatype.
-            {
-                var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/', '\\'));
-
-                if (File.Exists(imagePath))
-                {
-                    var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
-                    var parentImageFolder = (await imageFile.GetParentAsync());
-                    if (!File.Exists(Path.Combine(EpubTextFolder.Path, Path.GetFileName(imageFile.Path))))
-                    {
-                        await imageFile.CopyAsync(EpubTextFolder);
-                        await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
-                    }
-
-                }
-            }
-        }
+        #endregion
     }
 }
