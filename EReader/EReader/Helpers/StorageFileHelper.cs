@@ -9,12 +9,14 @@ namespace EReader.Helpers
 {
     public static class StorageFileHelper
     {
-        public static string ConstructApplicationUriFromStorageFile(this StorageFile file)
+        public static Uri ConstructApplicationUriFromStorageFile(this StorageFile file)
         {
-            string prefix = "ms-appdata:///local/";
+            UriBuilder builder = new UriBuilder("ms-appdata:");
             string fullFilePath = file.Path;
             string applicationURI = fullFilePath.Remove(0, fullFilePath.IndexOf("LocalState\\") + "LocalState\\".Length);
-            return prefix + applicationURI.Replace("\\", "//");
+            builder.Path += "///local/";
+            builder.Path += applicationURI.Replace("\\", "/");
+            return builder.Uri;
         }
     }
 }

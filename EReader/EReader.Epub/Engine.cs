@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using Windows.Storage;
 using Windows.Storage.Search;
@@ -91,14 +92,12 @@ namespace EReader.Epub
 
                 var chapterFile = await StorageFile.GetFileFromPathAsync(DirectoryHelper.GetChapterFilePath(OPFFolder.Path, pageLink));
                 // Create a new parser front-end (can be re-used)
-                var parser = new HtmlParser();
-                //Just get the DOM representation
-                var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile));
+                XmlDocument document = new XmlDocument();
+                document.LoadXml(await FileIO.ReadTextAsync(chapterFile));
                 //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
                 html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
-                html += document.Body.InnerHtml;
+                html += document.GetElementsByTagName("body")[0].InnerXml;
                 await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
-                GC.Collect();
             }
           
             return html;
@@ -234,11 +233,15 @@ namespace EReader.Epub
             foreach (var image in document.Manifest.Item.Where(t => t.Mediatype.Contains("image"))) //image can be any type so we don't specify the exact mediatype.
             {
                 var imagePath = Path.Combine(OPFFolder.Path, image.Href.Replace('/','\\'));
-                if (File.Exists(imagePath) && OPFFolder.Path != EpubTextFolder.Path)
+               
+                if (File.Exists(imagePath))
                 {
                     var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
-                    await imageFile.CopyAsync(EpubTextFolder);
-                    await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                    if (OPFFolder.Path != (await imageFile.GetParentAsync()).Path)
+                    {
+                        await imageFile.CopyAsync(EpubTextFolder);
+                        await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                    }
                 }
             }
         }

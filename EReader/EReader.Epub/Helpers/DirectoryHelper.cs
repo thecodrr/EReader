@@ -21,10 +21,6 @@ namespace EReader.Epub.Helpers
         public static string GetChapterFilePath(string opfFolderPath, string chapterLink)
         {
             var path = Path.Combine(opfFolderPath, System.Net.WebUtility.HtmlDecode(chapterLink).Replace("/", "\\"));
-            if (path.Contains("#"))
-            {
-                path = path.Remove(path.IndexOf('#') - 0);
-            }
             return Uri.UnescapeDataString(path);
         }
         public static string GetSafeFilename(string filename)
