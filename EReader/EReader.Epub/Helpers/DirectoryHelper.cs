@@ -25,6 +25,8 @@ namespace EReader.Epub.Helpers
         }
         public static string GetSafeFilename(string filename)
         {
+            if (filename.Length > 50)
+                filename = filename.Remove(50) + Path.GetRandomFileName();
             return string.Join("", filename.Split(Path.GetInvalidFileNameChars()));
         }
         public static async Task<StorageFile> GetFullPathFromRelativePath(StorageFolder rootFolder, string relativePath)

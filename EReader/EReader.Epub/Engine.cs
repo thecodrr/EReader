@@ -10,11 +10,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Windows.Storage;
 using Windows.Storage.Search;
+using Windows.UI.Xaml;
 
 namespace EReader.Epub
 {
@@ -92,11 +94,12 @@ namespace EReader.Epub
 
                 var chapterFile = await StorageFile.GetFileFromPathAsync(DirectoryHelper.GetChapterFilePath(OPFFolder.Path, pageLink));
                 // Create a new parser front-end (can be re-used)
-                XmlDocument document = new XmlDocument();
-                document.LoadXml(await FileIO.ReadTextAsync(chapterFile));
-                //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
-                html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
-                html += document.GetElementsByTagName("body")[0].InnerXml;
+                HtmlParser parser = new HtmlParser();
+                using (var document = await parser.ParseAsync(await FileIO.ReadTextAsync(chapterFile)))
+                {       //add a <span> tag before each chapter to fix chapter navigation. This is cost-free.
+                    html += string.Format("<span id='{0}-ch'/>", Path.GetFileNameWithoutExtension(chapterFile.Path));
+                    html += document.Body.InnerHtml;
+                }
                 await chapterFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
             }
           
@@ -110,9 +113,19 @@ namespace EReader.Epub
             return await Task.Run(async () =>
             {
                 var localFolder = ApplicationData.Current.LocalFolder;
-                if (!Directory.Exists(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath)))
-                    ZipFile.ExtractToDirectory(epubFilePath, localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
-                return await StorageFolder.GetFolderFromPathAsync(localFolder.Path + "\\" + Path.GetFileNameWithoutExtension(epubFilePath).Trim());
+                var extractedPath = localFolder.Path + "\\" + DirectoryHelper.GetSafeFilename(Path.GetFileNameWithoutExtension(epubFilePath)).Trim();
+                if (!Directory.Exists(extractedPath))
+                {
+                    try
+                    {
+                        ZipFile.ExtractToDirectory(epubFilePath, extractedPath);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        return null;
+                    }
+                }
+                return await StorageFolder.GetFolderFromPathAsync(extractedPath);
             });
         }
         #endregion
@@ -121,7 +134,11 @@ namespace EReader.Epub
         public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file, bool loadExtras)
         {
             var folder = await ExtractEpubFileAsync(file.Path);
-            return await ReadEpubAsync(folder, loadExtras);
+            if (folder != null)
+            {
+                return await ReadEpubAsync(folder, loadExtras);
+            }
+            return (null,null);
         }
         private async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder, bool loadExtras)
         {
@@ -129,7 +146,7 @@ namespace EReader.Epub
             var opfContent = await ReadMetadata();
             var tocContent = await ReadTOC(opfContent);
             var eBook = new Book();
-            var path = DirectoryHelper.GetChapterFilePath(OPFFolder.Path, tocContent.NavMap.Chapters[0].ChapterLink);
+            var path = DirectoryHelper.GetChapterFilePath(OPFFolder.Path, opfContent.Manifest.Item.FirstOrDefault(t => t.Mediatype == "application/xhtml+xml").Href);
             EpubTextFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(path));
             var fullBookPath = Path.Combine(EpubTextFolder.Path, DirectoryHelper.GetSafeFilename(opfContent.Metadata.Title) + ".html");
             StorageFile fullBook = null;
@@ -156,6 +173,7 @@ namespace EReader.Epub
         private async Task<StorageFile> SaveBookAsync(string html, Metadata data)
         {
             string bookName = DirectoryHelper.GetSafeFilename(data.Title) + ".html";
+       
             string path = Path.Combine(EpubTextFolder.Path, bookName);
 
             if (!File.Exists(path))
@@ -173,29 +191,31 @@ namespace EReader.Epub
         {
             var parser = new HtmlParser();
             //Just get the DOM representation
-            var document = await parser.ParseAsync(html);
-            int index = 0;
-            foreach (var anchor in document.QuerySelectorAll("a"))
+            using (var document = await parser.ParseAsync(html))
             {
-                if (anchor.Attributes["href"] == null && string.IsNullOrEmpty(anchor.InnerHtml))
-                    anchor.Remove();
-                else if (anchor.Attributes["href"] != null)
+                int index = 0;
+                foreach (var anchor in document.QuerySelectorAll("a"))
                 {
-                    string repairedLink = RepairLink(anchor.Attributes["href"].Value);
-                    if(!string.IsNullOrEmpty(repairedLink))
-                        anchor.SetAttribute("href", repairedLink);
+                    if (anchor.Attributes["href"] == null && string.IsNullOrEmpty(anchor.InnerHtml))
+                        anchor.Remove();
+                    else if (anchor.Attributes["href"] != null)
+                    {
+                        string repairedLink = RepairLink(anchor.Attributes["href"].Value);
+                        if (!string.IsNullOrEmpty(repairedLink))
+                            anchor.SetAttribute("href", repairedLink);
+                    }
                 }
-            }
-            foreach (var image in document.QuerySelectorAll("img, image"))
-            {
-                if (image.Attributes["src"] != null)
-                    image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
-                else if (image.Attributes["src"] == null && image.Attributes["href"] != null) //is svg, parse differently
+                foreach (var image in document.QuerySelectorAll("img, image"))
                 {
-                    image.SetAttribute("href", image.Attributes["href"].Value.Remove(0, image.Attributes["href"].Value.LastIndexOf('/') + 1));
+                    if (image.Attributes["src"] != null)
+                        image.SetAttribute("src", image.Attributes["src"].Value.Remove(0, image.Attributes["src"].Value.LastIndexOf('/') + 1));
+                    else if (image.Attributes["src"] == null && image.Attributes["href"] != null) //is svg, parse differently
+                    {
+                        image.SetAttribute("href", image.Attributes["href"].Value.Remove(0, image.Attributes["href"].Value.LastIndexOf('/') + 1));
+                    }
                 }
+                return document.Body.InnerHtml;
             }
-            return document.Body.InnerHtml;
         }
         public string RepairLink(string link)
         {
@@ -237,10 +257,14 @@ namespace EReader.Epub
                 if (File.Exists(imagePath))
                 {
                     var imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
-                    if (OPFFolder.Path != (await imageFile.GetParentAsync()).Path)
+                    var parentImageFolder = (await imageFile.GetParentAsync());
+                    if (OPFFolder.Path != parentImageFolder.Path)
                     {
-                        await imageFile.CopyAsync(EpubTextFolder);
-                        await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                        if (!File.Exists(Path.Combine(EpubTextFolder.Path, Path.GetFileName(imageFile.Path))))
+                        {
+                            await imageFile.CopyAsync(EpubTextFolder);
+                            await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                        }
                     }
                 }
             }

@@ -18,38 +18,38 @@ namespace EReader.Views
         }
         async void OpenFile()
         {
-            FileOpenPicker picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".epub");
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
-            {
-                Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
-                EReader.Epub.Engine engine = new Epub.Engine();
-                var book = await engine.ReadEpubAsync(file, false);
-                var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
-                DocumentViewer.Navigate(uri);
-                GC.Collect();
-            }
-            DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
-
-            //FolderPicker picker = new FolderPicker();
+            //FileOpenPicker picker = new FileOpenPicker();
             //picker.FileTypeFilter.Add(".epub");
-            //var folder = await picker.PickSingleFolderAsync();
-            //if (folder != null)
+            //var file = await picker.PickSingleFileAsync();
+            //if (file != null)
             //{
-            //    foreach (var file in await folder.GetFilesAsync())
-            //    {
-            //        if (file.FileType.Contains("epub"))
-            //        {
-            //            Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
-            //            EReader.Epub.Engine engine = new Epub.Engine();
-            //            var book = await engine.ReadEpubAsync(file, false);
-            //            //var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
-            //            //DocumentViewer.Navigate(new Uri(uri));
-            //        }
-            //    }
+            //    Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
+            //    EReader.Epub.Engine engine = new Epub.Engine();
+            //    var book = await engine.ReadEpubAsync(file, false);
+            //    var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
+            //    DocumentViewer.Navigate(uri);
+            //    GC.Collect();
             //}
             //DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
+
+            FolderPicker picker = new FolderPicker();
+            picker.FileTypeFilter.Add(".epub");
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
+            {
+                foreach (var file in await folder.GetFilesAsync())
+                {
+                    if (file.FileType.Contains("epub"))
+                    {
+                        Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
+                        EReader.Epub.Engine engine = new Epub.Engine();
+                        var book = await engine.ReadEpubAsync(file, false);
+                        //var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
+                        //DocumentViewer.Navigate(new Uri(uri));
+                    }
+                }
+            }
+            DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
         }
 
 
