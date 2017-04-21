@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="Extensions\VisualTreeHelperExtensions.cs" />
     <Compile Include="Helpers\StorageFileHelper.cs" />
+    <Compile Include="Models\EpubDocument.cs" />
     <Compile Include="Models\EReaderDocument.cs" />
     <Compile Include="Models\Tag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

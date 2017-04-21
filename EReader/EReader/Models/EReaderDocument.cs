@@ -10,71 +10,27 @@ namespace EReader.Models
 {
     public class EReaderDocument
     {
-        private string _title;
 
-        private string _author;
+        protected string Title { get; set; }
 
-        private string _coverImageSource;
+        protected string Author { get; set; }
 
-        private string _tag;
+        protected string CoverImageSource { get; set; }
 
-        private string _filePath;
+        protected string Tag { get; set; }
 
-        private FileInfo _fileInfo;
+        protected string FilePath { get; set; }
 
-        private StorageFile _document;
+        protected StorageFile Document { get; set; }
 
-        public string Title
-        {
-            get { return _title; }
-            set { _title = value; }
-        }
-
-        public string Author
-        {
-            get { return _author; }
-            set { _author = value; }
-        }
-
-        public string CoverImageSource
-        {
-            get { return _coverImageSource; }
-            set { _coverImageSource = value; }
-        }
-
-        public string Tag
-        {
-            get { return _tag; }
-            set { _tag = value; }
-        }
-
-        public string FilePath
-        {
-            get { return _filePath; }
-            set { _filePath = value; }
-        }
-
-        public FileInfo MetaData
-        {
-            get { return _fileInfo; }
-            set { _fileInfo = value; }
-        }
-
-        public StorageFile Document
-        {
-            get { return _document; }
-            set { _document = value; }
-        }
+        protected string Description { get; set; }        
 
         public EReaderDocument(StorageFile file)
         {
             FilePath = file.Path;
-            MetaData = new FileInfo(FilePath);
             Document = file;
-            Title = MetaData.Name;
             Author = "";
             CoverImageSource = "";
-        }
-        
+        }        
     }
 }

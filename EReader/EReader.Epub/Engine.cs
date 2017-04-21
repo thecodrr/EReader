@@ -39,6 +39,16 @@ namespace EReader.Epub
 
         #region Central Methods
         /// <summary>
+        /// Reads only the metadata (contents.opf) of the ebook.
+        /// </summary>
+        /// <param name="epubfilePath">The epub file path to retrieve metadata of.</param>
+        /// <returns>Metadata of the ebook.</returns>
+        public async Task<Metadata> ReadMetadataOnlyAsync(string epubfilePath)
+        {
+            RootEpubFolder = await ExtractEpubFileAsync(epubfilePath);            
+            return (await ReadMetadata()).Metadata;
+        }
+        /// <summary>
         /// Read Epub File. This extracts the file to a folder in the ApplicationData.LocalFolder and then starts reading.
         /// </summary>
         /// <param name="file">The Epub File</param>
@@ -269,7 +279,7 @@ namespace EReader.Epub
                         await imageFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
                     }
                 }
-            }
+            }            
         }
         #endregion
 
