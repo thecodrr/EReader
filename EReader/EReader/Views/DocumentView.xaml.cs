@@ -1,4 +1,5 @@
-﻿using EReader.Helpers;
+﻿using EReader.Epub;
+using EReader.Helpers;
 using System;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml.Controls;
@@ -24,21 +25,18 @@ namespace EReader.Views
             if (file != null)
             {
                 Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
-                EReader.Epub.Engine engine = new Epub.Engine();
-                var book = await engine.ReadEpubAsync(file, false);
+                EReader.Epub.Engine engine = new Epub.Engine();               
+                var book = await engine.ReadEpubAsync(file);
                 var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
                 DocumentViewer.Navigate(uri);
-                GC.Collect();
             }
             DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
         }
-
-
         private async void DocumentViewer_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
         {
             args.Cancel = true;
             string functionString = "function scrollTo(a,b,c){if(!(c<=0)){var d=b-a.scrollTop,e=d/c*10;setTimeout(function(){a.scrollTop=a.scrollTop+e,a.scrollTop!==b&&scrollTo(a,b,c-10)},10)}}";
-           // string alternateScript = string.Format("var els = document.querySelectorAll(\"a[href~='{0}']\");var el = els[0];el.scrollIntoView();", args.Uri.Fragment.Replace("#", ""));
+            // string alternateScript = string.Format("var els = document.querySelectorAll(\"a[href~='{0}']\");var el = els[0];el.scrollIntoView();", args.Uri.Fragment.Replace("#", ""));
             functionString += String.Format("elmnt = document.getElementById('{0}'); scrollTo(document.body, elmnt.offsetTop, 600);", args.Uri.Fragment.Replace("#",""));
             var res = await DocumentViewer.InvokeScriptAsync("eval", new string[] { functionString });
         }

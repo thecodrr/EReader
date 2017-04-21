@@ -12,9 +12,9 @@
             <RowDefinition Height="80"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <RelativePanel x:Name="headerPanel" Grid.Row="0" Margin="20" VerticalAlignment="Center">
-            <TextBlock x:Name="titleTextBlock" Text="Title" FontSize="36" HorizontalAlignment="Left"/>
-        </RelativePanel>
-        <Frame x:Name="ContentFrame" Grid.Row="1" Margin="8"/>
+        <StackPanel x:Name="headerPanel" Grid.Row="0" Margin="20,0,20,0" VerticalAlignment="Center">
+            <TextBlock x:Name="titleTextBlock" Text="Title" FontSize="36" FontWeight="ExtraLight" HorizontalAlignment="Left"/>
+        </StackPanel>
+        <Frame x:Name="ContentFrame" Grid.Row="1" Margin="8" Navigated="ContentFrame_Navigated"/>
     </Grid>
 </Page>
