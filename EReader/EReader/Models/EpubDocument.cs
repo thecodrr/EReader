@@ -31,7 +31,8 @@ namespace EReader.Models
             epubDoc.CoverImageSource = book.epubBook.CoverImage;
             epubDoc.Title = book.epubBook.Metadata.Title;
             epubDoc.Author = book.epubBook.Metadata.Creator.Text;
-            epubDoc.Document = book.epubFile;
+            epubDoc.FilePath = book.epubFile.Path;
+            epubDoc.Document = await StorageFile.GetFileFromPathAsync(epubDoc.FilePath);
             epubDoc.Chapters = book.epubBook.Chapters;
             epubDoc.Description = book.epubBook.Metadata.Description;
             return epubDoc;

@@ -24,6 +24,7 @@ namespace EReader.Views
             var book = (e.Parameter as ItemClickEventArgs).ClickedItem as EReaderDocument;
             var uri = book.Document.ConstructApplicationUriFromStorageFile();
             DocumentViewer.Navigate(uri);
+            DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
             base.OnNavigatedTo(e);
         }
         private async void DocumentViewer_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,10 +21,15 @@ namespace EReader.Models
 
         public string FilePath { get; set; }
 
+        [JsonIgnore]
         public StorageFile Document { get; set; }
 
         public string Description { get; set; }        
 
+        public EReaderDocument()
+        {
+
+        }
         public EReaderDocument(StorageFile file)
         {
             FilePath = file.Path;

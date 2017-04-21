@@ -13,13 +13,16 @@ using Windows.Storage.Pickers;
 using EReader.MVVM;
 using EReader.MVVM.Commands;
 using EReader.Helpers;
+using EReader.Services;
+using EReader.Database;
+using System.IO;
 
 namespace EReader.ViewModels
 {
     public class LibraryViewModel : ViewModelBase
     {
+        private EBookLibraryService EBookLibrary { get; set; }
         private ObservableCollection<EReaderDocument> _ereaderDocuments;
-
         public ObservableCollection<EReaderDocument> EReaderDocuments
         {
             get { return _ereaderDocuments; }
@@ -37,12 +40,18 @@ namespace EReader.ViewModels
         private async void InitData()
         {
             EReaderDocuments = new ObservableCollection<EReaderDocument>();
-            ApplicationDataContainer fileAccessTokenContainer = ApplicationData.Current.LocalSettings.CreateContainer("FileAccessTokenContainer", ApplicationDataCreateDisposition.Always);
-            foreach (var value in fileAccessTokenContainer.Values)
+            EBookLibrary = new EBookLibraryService(new KeyValueStoreDatabaseService());
+            foreach(var file in await EBookLibrary.RetrieveBooks())
             {
-                var file = await StorageItemHelper.RetrieveStorageItemUsingAccessToken(value.Key);
-                EReaderDocuments.Add(await EpubDocument.Create((StorageFile)file));
+                file.Document = await StorageFile.GetFileFromPathAsync(file.FilePath);
+                EReaderDocuments.Add(file);
             }
+            //ApplicationDataContainer fileAccessTokenContainer = ApplicationData.Current.LocalSettings.CreateContainer("FileAccessTokenContainer", ApplicationDataCreateDisposition.Always);
+            //foreach (var value in fileAccessTokenContainer.Values)
+            //{
+            //    var file = await StorageItemHelper.RetrieveStorageItemUsingAccessToken(value.Key);
+            //    EReaderDocuments.Add(await EpubDocument.Create((StorageFile)file));
+            //}
         }
 
         private void InitCommands()
@@ -58,7 +67,9 @@ namespace EReader.ViewModels
             if (eBookFile != null)
             {
                 eBookFile.SaveFileAccessToken();
-                EReaderDocuments.Add(await EpubDocument.Create(eBookFile));
+                var eBook = await EpubDocument.Create(eBookFile);
+                EReaderDocuments.Add(eBook);
+                await EBookLibrary.InsertBook(eBook);
             }
         }
     }
