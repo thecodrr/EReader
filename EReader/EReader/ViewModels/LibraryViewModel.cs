@@ -31,13 +31,18 @@ namespace EReader.ViewModels
         public LibraryViewModel()
         {
             InitData();
-
             InitCommands();
         }
 
-        private void InitData()
+        private async void InitData()
         {
             EReaderDocuments = new ObservableCollection<EReaderDocument>();
+            ApplicationDataContainer fileAccessTokenContainer = ApplicationData.Current.LocalSettings.CreateContainer("FileAccessTokenContainer", ApplicationDataCreateDisposition.Always);
+            foreach (var value in fileAccessTokenContainer.Values)
+            {
+                var file = await StorageItemHelper.RetrieveStorageItemUsingAccessToken(value.Key);
+                EReaderDocuments.Add(await EpubDocument.Create((StorageFile)file));
+            }
         }
 
         private void InitCommands()
@@ -53,6 +58,7 @@ namespace EReader.ViewModels
             if (eBookFile != null)
             {
                 eBookFile.SaveFileAccessToken();
+                EReaderDocuments.Add(await EpubDocument.Create(eBookFile));
             }
         }
     }

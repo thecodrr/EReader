@@ -30,5 +30,10 @@ namespace EReader.Views
         {
             this.InitializeComponent();
         }
+
+        private void DocumentList_ItemClick(object sender, ItemClickEventArgs e)
+        {
+
+        }
     }
 }

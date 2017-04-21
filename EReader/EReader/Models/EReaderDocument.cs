@@ -10,20 +10,19 @@ namespace EReader.Models
 {
     public class EReaderDocument
     {
+        public string Title { get; set; }
 
-        protected string Title { get; set; }
+        public string Author { get; set; }
 
-        protected string Author { get; set; }
+        public string CoverImageSource { get; set; }
 
-        protected string CoverImageSource { get; set; }
+        public string Tag { get; set; }
 
-        protected string Tag { get; set; }
+        public string FilePath { get; set; }
 
-        protected string FilePath { get; set; }
+        public StorageFile Document { get; set; }
 
-        protected StorageFile Document { get; set; }
-
-        protected string Description { get; set; }        
+        public string Description { get; set; }        
 
         public EReaderDocument(StorageFile file)
         {

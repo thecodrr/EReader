@@ -32,8 +32,10 @@ namespace EReader.Models
             epubDoc.Title = book.epubBook.Metadata.Title;
             epubDoc.Author = book.epubBook.Metadata.Creator.Text;
             epubDoc.Document = book.epubFile;
+            epubDoc.Chapters = book.epubBook.Chapters;
             epubDoc.Description = book.epubBook.Metadata.Description;
             return epubDoc;
         }
+        public List<Chapter> Chapters { get; set; }
     }
 }

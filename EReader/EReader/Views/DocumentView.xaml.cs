@@ -1,8 +1,10 @@
 ﻿using EReader.Epub;
 using EReader.Helpers;
+using EReader.Models;
 using System;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace EReader.Views
@@ -15,22 +17,14 @@ namespace EReader.Views
         public DocumentView()
         {
             this.InitializeComponent();
-            OpenFile();
-        }
-        async void OpenFile()
+            
+        }      
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            FileOpenPicker picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".epub");
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
-            {
-                Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(file);
-                EReader.Epub.Engine engine = new Epub.Engine();               
-                var book = await engine.ReadEpubAsync(file);
-                var uri = book.epubFile.ConstructApplicationUriFromStorageFile();
-                DocumentViewer.Navigate(uri);
-            }
-            DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
+            var book = (e.Parameter as ItemClickEventArgs).ClickedItem as EReaderDocument;
+            var uri = book.Document.ConstructApplicationUriFromStorageFile();
+            DocumentViewer.Navigate(uri);
+            base.OnNavigatedTo(e);
         }
         private async void DocumentViewer_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
         {
