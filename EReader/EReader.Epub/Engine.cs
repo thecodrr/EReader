@@ -105,7 +105,7 @@ namespace EReader.Epub
                 eBook.BookStyleCSS = await ReadCSSFiles();
 
                 //the is the html that holds the styles and all the other required structure.
-                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{padding:20px !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
+                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{margin:30px !important;}} img {{max-width: 100% !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
 
                 //get the chapters. step 4
                 string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
@@ -126,9 +126,24 @@ namespace EReader.Epub
             }
             eBook.Chapters = tocContent.NavMap.Chapters;
             eBook.Metadata = opfContent.Metadata;
+            eBook.CoverImage = (await GetCoverImageAsync(opfContent)).Path;
             return (eBook, fullBook);
         }
 
+        private async Task<StorageFile> GetCoverImageAsync(OPFDocument opfContent)
+        {
+            string coverPath = "";
+            if (opfContent.Manifest.Item.Any(t => t.Href.ToLower().Contains("cover") && t.Mediatype.Contains("image")))
+            {
+                coverPath = opfContent.Manifest.Item.FirstOrDefault(t => t.Href.ToLower().Contains("cover") && t.Mediatype.Contains("image")).Href;
+            }
+            else
+            {
+                coverPath = opfContent.Manifest.Item.FirstOrDefault(t => t.Mediatype.Contains("image")).Href;
+            }
+            coverPath = coverPath.Remove(0, coverPath.LastIndexOf("/") + 1);
+            return (StorageFile)(await EpubTextFolder.TryGetItemAsync(coverPath));
+        }
         #endregion
 
         #region Private Methods

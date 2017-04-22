@@ -5,9 +5,60 @@
     xmlns:local="using:EReader.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <WebView x:Name="DocumentViewer"/>
+    <Grid Name="DocumentsViewGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <!--<VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="DocumentViewer.Margin" Value="0"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="900"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="DocumentViewer.Margin" Value="150,0"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1200"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="DocumentViewer.Margin" Value="400,0"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="BookInfoPanel" VerticalAlignment="Center" Orientation="Vertical" Background="{ThemeResource SystemControlBackgroundAccentBrush}">
+            <TextBlock Text="{Binding Path=Title}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="{Binding Path=Author}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal"/>
+            <ProgressBar Value="5" Foreground="Black" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
+        </StackPanel>
+        <HyperlinkButton VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Black" HorizontalAlignment="Left">
+            <SymbolIcon Symbol="Back"/>
+            <Interactivity:Interaction.Behaviors>
+                <Core:EventTriggerBehavior EventName="Click">
+                    <Core:NavigateToPageAction TargetPage="EReader.Views.LibraryView">
+                        <Core:NavigateToPageAction.Parameter>
+                            <x:String>My eBook Library</x:String>
+                        </Core:NavigateToPageAction.Parameter>
+                    </Core:NavigateToPageAction>
+                </Core:EventTriggerBehavior>
+            </Interactivity:Interaction.Behaviors>
+        </HyperlinkButton>
+        <!--<WebView Grid.Row="1" x:Name="DocumentViewer" Margin="400,0,400,0"/>-->
     </Grid>
 </Page>

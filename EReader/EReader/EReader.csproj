@@ -96,6 +96,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Extensions\VisualTreeHelperExtensions.cs" />
+    <Compile Include="Helpers\PageTransitionHelper.cs" />
     <Compile Include="Helpers\StorageFileHelper.cs" />
     <Compile Include="Models\EpubDocument.cs" />
     <Compile Include="Models\EReaderDocument.cs" />

@@ -9,36 +9,109 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ViewModels="using:EReader.ViewModels"
     mc:Ignorable="d">
-    <Page.DataContext>
-        <ViewModels:LibraryViewModel/>
-    </Page.DataContext>
+    
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.DataContext>
+        <ViewModels:LibraryViewModel/>
+    </Grid.DataContext>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="titleTextBlock.FontSize" Value="26"/>
+                        <Setter Target="AddNewFileButton.Width" Value="30"/>
+                        <Setter Target="AddNewFileButton.Height" Value="30"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="600"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="titleTextBlock.FontSize" Value="30"/>
+                        <Setter Target="AddNewFileButton.Width" Value="36"/>
+                        <Setter Target="AddNewFileButton.Height" Value="36"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="900"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button x:Name="AddNewFileButton" Content="Add New File" Command="{Binding AddBookCommand}"/>
-        </StackPanel>
-        <ListView x:Name="DocumentList"
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="titleTextBlock" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10" Text="My eBook Library" HorizontalAlignment="Center" FontSize="36" FontWeight="Bold"/>
+        <HyperlinkButton x:Name="AddNewFileButton" Width="50" HorizontalAlignment="Right" Height="50" Margin="0,15,10,10" Command="{Binding AddBookCommand}">
+            <SymbolIcon Symbol="Add"/>
+        </HyperlinkButton>
+        <GridView x:Name="DocumentList"
                   ItemsSource="{Binding EReaderDocuments}"
                   SelectionMode="Single"
                   IsItemClickEnabled="True"
-                  Grid.Row="1"
-                  Margin="5,20,5,20"
+                  Grid.Row="1" VerticalContentAlignment="Top"
                   Width="Auto">
+
             <Interactivity:Interaction.Behaviors>
                 <Core:EventTriggerBehavior EventName="ItemClick">
                     <Core:NavigateToPageAction TargetPage="EReader.Views.DocumentView" Parameter="{Binding SelectedItem, ElementName=DocumentList}"/>
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
-            <ListView.ItemTemplate>
+            <GridView.ItemTemplate>
                 <DataTemplate>
-                    <!--x:DataType="data:TYPE">-->
-                    <TextBlock Text="{Binding Path=Title}"/>
+                    <StackPanel Width="200" Height="300" VerticalAlignment="Top">
+                        <Image>
+                            <Image.Source>
+                                <BitmapImage UriSource="{Binding Path=CoverImageSource}" DecodePixelHeight="250" DecodePixelWidth="200">
+                                </BitmapImage>
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="{Binding Title}" TextAlignment="Center" FontSize="18" TextTrimming="CharacterEllipsis" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Author}" TextAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis" FontWeight="Normal"/>
+                    </StackPanel>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </GridView.ItemTemplate>
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel VerticalAlignment="Top" Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+            <GridView.ItemContainerStyle>
+                <Style TargetType="GridViewItem">
+                    <Setter Property="Margin" Value="15,0,15,15"/>
+                </Style>
+            </GridView.ItemContainerStyle>
+        </GridView>
+        <!--<StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" DataContext="{Binding ElementName=DocumentList, Path=SelectedItem, UpdateSourceTrigger=Explicit}" Width="450">
+            <StackPanel Orientation="Horizontal">
+                <Image Width="130" Height="200" Margin="20,0,0,0">
+                    <Image.Source>
+                        <BitmapImage UriSource="{Binding Path=CoverImageSource}"></BitmapImage>
+                    </Image.Source>
+                </Image>
+                <StackPanel VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{Binding Path=Title}" FontSize="20" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Path=Author}" FontSize="15" FontWeight="Normal"/>
+                    <Button Margin="0,15,0,0" Content="Read"/>
+                    <Button Margin="0,5,0,0" Content="Mark as to read"/>
+                    <TextBlock Margin="0,15,0,0" Text="99% Read" TextAlignment="Center"/>
+                    <ProgressBar Margin="0,3,0,0" Value="0" Maximum="100"/>
+                </StackPanel>
+            </StackPanel>
+            <AppStudio:HtmlBlock Margin="20,10,20,0" Source="{Binding Path=Description}"/>
+        </StackPanel>-->
     </Grid>
 </Page>

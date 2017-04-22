@@ -15,8 +15,9 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
-
+using EReader.Helpers;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace EReader.Views
@@ -29,11 +30,7 @@ namespace EReader.Views
         public LibraryView()
         {
             this.InitializeComponent();
-        }
-
-        private void DocumentList_ItemClick(object sender, ItemClickEventArgs e)
-        {
-
-        }
+            this.SetupTransition(new DrillInNavigationTransitionInfo());
+        }      
     }
 }

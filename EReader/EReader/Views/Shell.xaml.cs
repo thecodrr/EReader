@@ -25,12 +25,7 @@ namespace EReader.Views
         public Shell()
         {
             this.InitializeComponent();
-            this.ContentFrame.Navigate(typeof (LibraryView), "My eBook Library");
-        }
-
-        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
-        {
-            titleTextBlock.Text = e.Parameter.ToString();
+            this.ContentFrame.Navigate(typeof (LibraryView));
         }
     }
 }

@@ -3,8 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:EReader"
-    xmlns:vm="using:EReader.Mvvm"
     RequestedTheme="Light">
     <Application.Resources>
+        <ResourceDictionary>
+            <SolidColorBrush Color="{ThemeResource SystemColorHighlightTextColor}" x:Key="ForegroundAccentBrush"/>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
