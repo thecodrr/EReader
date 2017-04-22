@@ -69,6 +69,7 @@ namespace EReader.ViewModels
                 eBookFile.SaveFileAccessToken();
                 var eBook = await EpubDocument.Create(eBookFile);
                 EReaderDocuments.Add(eBook);
+                await eBook.LoadEpub(eBook, eBookFile);
                 await EBookLibrary.InsertBook(eBook);
             }
         }

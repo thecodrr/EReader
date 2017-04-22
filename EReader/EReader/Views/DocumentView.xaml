@@ -7,10 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:Media="using:Microsoft.Xaml.Interactions.Media"
     mc:Ignorable="d">
 
     <Grid Name="DocumentsViewGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <!--<VisualStateManager.VisualStateGroups>
+        <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>
                     <VisualState.StateTriggers>
@@ -37,7 +38,7 @@
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>-->
+        </VisualStateManager.VisualStateGroups>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -59,6 +60,18 @@
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
         </HyperlinkButton>
-        <!--<WebView Grid.Row="1" x:Name="DocumentViewer" Margin="400,0,400,0"/>-->
+        <WebView Grid.Row="1" Opacity="0" x:Name="DocumentViewer" Margin="400,0,400,0">
+            <Interactivity:Interaction.Behaviors>
+                <Core:EventTriggerBehavior EventName="LoadCompleted">
+                    <Media:ControlStoryboardAction >
+                        <Media:ControlStoryboardAction.Storyboard>
+                            <Storyboard Storyboard.TargetName="DocumentViewer" Storyboard.TargetProperty="Opacity">
+                                <DoubleAnimation From="0" To="1" BeginTime="0:0:1" Duration="0:0:1"/>
+                            </Storyboard>
+                        </Media:ControlStoryboardAction.Storyboard>
+                    </Media:ControlStoryboardAction>
+                </Core:EventTriggerBehavior>
+            </Interactivity:Interaction.Behaviors>
+        </WebView>
     </Grid>
 </Page>

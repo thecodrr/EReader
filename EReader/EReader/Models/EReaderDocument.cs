@@ -9,13 +9,29 @@ using Windows.Storage;
 
 namespace EReader.Models
 {
-    public class EReaderDocument
+    public class EReaderDocument : ObservableObject
     {
-        public string Title { get; set; }
+        string title;
+        string author;
+        string cover;
 
-        public string Author { get; set; }
+        public string Title
+        {
+            get => title;
+            set => Set(ref title, value);
+        }
 
-        public string CoverImageSource { get; set; }
+        public string Author
+        {
+            get => author;
+            set => Set(ref author, value);
+        }
+
+        public string CoverImageSource
+        {
+            get => cover;
+            set => Set(ref cover, value);
+        }
 
         public string Tag { get; set; }
 
@@ -26,6 +42,18 @@ namespace EReader.Models
 
         public string Description { get; set; }        
         public double LastReadPosition { get; set; }
+        bool isLoading;
+        public bool IsLoading
+        {
+            get => isLoading;
+            set => Set(ref isLoading, value);
+        }
+        double loadProgress;
+        public double LoadProgress
+        {
+            get => loadProgress;
+            set => Set(ref loadProgress, value);
+        }
         public EReaderDocument()
         {
 

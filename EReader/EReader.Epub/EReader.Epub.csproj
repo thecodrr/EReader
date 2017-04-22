@@ -111,6 +111,7 @@
     <Compile Include="Helpers\DirectoryHelper.cs" />
     <Compile Include="Helpers\Minifiers.cs" />
     <Compile Include="HtmlRepairer\HtmlRepairer.cs" />
+    <Compile Include="IProgress.cs" />
     <Compile Include="Models\Book.cs" />
     <Compile Include="Models\EpubContainer.cs" />
     <Compile Include="Models\OPFDocument.cs" />

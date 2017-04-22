@@ -53,15 +53,16 @@ namespace EReader.Epub
         /// </summary>
         /// <param name="file">The Epub File</param>
         /// <returns>A tuple containing the Book and the EpubFile. We need both to properly navigate to the new html file.</returns>
-        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file)
+        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFile file, IProgress<int> progress)
         {
             //get the folder the epub was extracted to. step 1
             var folder = await ExtractEpubFileAsync(file.Path);
+            progress.Report(25, "Files Extracted");
 
             if (folder != null)
             {
                 //start reading epub.
-                return await ReadEpubAsync(folder);
+                return await ReadEpubAsync(folder, progress);
             }
             return (null, null);
         }
@@ -71,16 +72,18 @@ namespace EReader.Epub
         /// </summary>
         /// <param name="rootFolder">The folder where epub content is.</param>
         /// <returns>A tuple containing the Book and the EpubFile.</returns>
-        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder)
+        public async Task<(Book epubBook, StorageFile epubFile)> ReadEpubAsync(StorageFolder rootFolder, IProgress<int> progress)
         {
             //set the RootEpubFolder property. We will need it elsewhere.
             RootEpubFolder = rootFolder;
-
+            
             //get opf content. step 2 part 1
             var opfContent = await ReadMetadata();
+            progress.Report(32, "Got Metadata");
 
             //get toc. step 2 part 2
             var tocContent = await ReadTOC(opfContent);
+            progress.Report(39, "Got TOC");
 
             var eBook = new Book();
 
@@ -100,15 +103,18 @@ namespace EReader.Epub
             {
                 //just move the images. step 3
                 await MoveAllImagesAsync(opfContent);
+                progress.Report(59, "Images Moved");
 
                 //get the css. //step 2 part 3
                 eBook.BookStyleCSS = await ReadCSSFiles();
+                progress.Report(66, "CSS Read");
 
                 //the is the html that holds the styles and all the other required structure.
                 string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{margin:30px !important;}} img {{max-width: 100% !important;}}{0}</style><script type=\"text/javascript\">window.onscroll = function(){{var percent = (document.documentElement.scrollTop||document.body.scrollTop) / ((document.documentElement.scrollHeight||document.body.scrollHeight) - document.documentElement.clientHeight); window.external.notify(percent.toString());}}; function scrollTo(a,b,c){{if(!(c<=0)){{var d=b-a.scrollTop,e=d/c*10;setTimeout(function(){{a.scrollTop=a.scrollTop+e,a.scrollTop!==b&&scrollTo(a,b,c-10)}},10)}}}};</script></head><body>", eBook.BookStyleCSS);
 
                 //get the chapters. step 4
                 string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);
+                progress.Report(81, "Chapters Read");
 
                 //repair the html (links and images). (Is this a step too?)
                 html += await HtmlRepairer.HtmlRepairer.RepairHtml(chapters);
@@ -118,6 +124,7 @@ namespace EReader.Epub
 
                 //just go on and save. step 5.
                 fullBook = await SaveBookAsync(html, opfContent.Metadata);
+                progress.Report(100, "Book Saved");
             }
             else
             {
@@ -133,9 +140,9 @@ namespace EReader.Epub
         private async Task<StorageFile> GetCoverImageAsync(OPFDocument opfContent)
         {
             string coverPath = "";
-            if (opfContent.Manifest.Item.Any(t => t.Href.ToLower().Contains("cover") && t.Mediatype.Contains("image")))
+            if (opfContent.Manifest.Item.Any(t => (t.Id.ToLower().Contains("cover") || t.Href.ToLower().Contains("cover")) && t.Mediatype.Contains("image")))
             {
-                coverPath = opfContent.Manifest.Item.FirstOrDefault(t => t.Href.ToLower().Contains("cover") && t.Mediatype.Contains("image")).Href;
+                coverPath = opfContent.Manifest.Item.FirstOrDefault(t => (t.Id.ToLower().Contains("cover") || t.Href.ToLower().Contains("cover")) && t.Mediatype.Contains("image")).Href;
             }
             else
             {

@@ -15,31 +15,24 @@ using Windows.UI.Xaml.Navigation;
 namespace EReader.Views
 {
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    ///  TODO: Add TOC
     /// </summary>
     public sealed partial class DocumentView : Page
     {
         private EReaderDocument Book;
         DispatcherTimer saveReadingProgress;
-        WebView DocumentViewer;
         EBookLibraryService LibraryService;      
         double oldProgress;
 
+        /// <summary>
+        /// The Poor Constructor
+        /// </summary>
         public DocumentView()
         {
             this.InitializeComponent();
             this.SetupTransition(new DrillInNavigationTransitionInfo());
         }
-        /// <summary>
-        /// Create a new WebView and add it to the Grid.
-        /// </summary>
-        private void InitWebView()
-        {
-            DocumentViewer = new WebView();
-            Grid.SetRow(DocumentViewer, 1);
-            DocumentViewer.Opacity = 0;
-            DocumentsViewGrid.Children.Add(DocumentViewer);
-        }
+        
         /// <summary>
         /// Destroy the WebView. We no longer need it.
         /// </summary>
@@ -50,9 +43,6 @@ namespace EReader.Views
         }
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            //init webview
-            InitWebView();
-
             //there seems to be a bug in the NavigateToAction
             //because the parameter is not set or if it is,
             //it doesn't take bindings very nicely.
@@ -102,6 +92,7 @@ namespace EReader.Views
             if (Book.LastReadPosition > 0)
             {
                 //the scroll function.
+                //we reverse calculate the scroll offset; from percentage to actual value.
                 string functionString = "var offset = ({0} / 100) * ((document.documentElement.scrollHeight||document.body.scrollHeight) - document.documentElement.clientHeight); scrollTo(document.body, offset, 500);";
 
                 //invoke script in browser to scroll to the last read position. This will take 500 milliseconds.
@@ -126,19 +117,7 @@ namespace EReader.Views
         private async void DocumentViewer_LoadCompleted(object sender, NavigationEventArgs e)
         {
             //the book has loaded so start the save timer.
-            saveReadingProgress.Start();
-
-            //begin the fade in animation for the webview.
-            Storyboard board = new Storyboard();
-            DoubleAnimation animation = new DoubleAnimation();
-            animation.From = 0;
-            animation.To = 1;
-            animation.BeginTime = TimeSpan.FromSeconds(1);
-            animation.Duration = TimeSpan.FromSeconds(1);
-            Storyboard.SetTarget(animation, DocumentViewer);
-            Storyboard.SetTargetProperty(animation, "Opacity");
-            board.Children.Add(animation);
-            board.Begin();
+            saveReadingProgress.Start();            
 
             //load the reading progress.
             await LoadReadingProgress();

@@ -95,7 +95,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\Progress.cs" />
     <Compile Include="Common\StreamUriResolver.cs" />
+    <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Extensions\VisualTreeHelperExtensions.cs" />
     <Compile Include="Helpers\PageTransitionHelper.cs" />
     <Compile Include="Helpers\StorageFileHelper.cs" />

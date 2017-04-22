@@ -8,8 +8,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ViewModels="using:EReader.ViewModels"
+    xmlns:Converters="using:EReader.Converters"
+    xmlns:Media="using:Microsoft.Xaml.Interactions.Media"
     mc:Ignorable="d">
-    
+    <Page.Resources>
+        <Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.DataContext>
@@ -61,28 +65,41 @@
         <GridView x:Name="DocumentList"
                   ItemsSource="{Binding EReaderDocuments}"
                   SelectionMode="Single"
-                  IsItemClickEnabled="True"
-                  Grid.Row="1" VerticalContentAlignment="Top"
+                  IsItemClickEnabled="True" Margin="30,0"
+                  Grid.Row="1"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.HorizontalScrollMode="Disabled"
                   Width="Auto">
 
             <Interactivity:Interaction.Behaviors>
                 <Core:EventTriggerBehavior EventName="ItemClick">
-                    <Core:NavigateToPageAction TargetPage="EReader.Views.DocumentView">
-                        <Core:NavigateToPageAction.Parameter>
-                            <Binding ElementName="DocumentsList" Path="SelectedItem"/>
-                        </Core:NavigateToPageAction.Parameter>
-                    </Core:NavigateToPageAction>
+                    <Core:NavigateToPageAction TargetPage="EReader.Views.DocumentView"/>
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
             <GridView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Width="200" Height="300" VerticalAlignment="Top">
-                        <Image>
-                            <Image.Source>
-                                <BitmapImage UriSource="{Binding Path=CoverImageSource}" DecodePixelHeight="250" DecodePixelWidth="200">
-                                </BitmapImage>
-                            </Image.Source>
-                        </Image>
+                        <Grid Width="200" Height="250">
+                           <Image x:Name="coverImage" Opacity="0">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{Binding Path=CoverImageSource}" DecodePixelHeight="250" DecodePixelWidth="200">
+                                    </BitmapImage>
+                                </Image.Source>
+                                <Interactivity:Interaction.Behaviors>
+                                    <Core:EventTriggerBehavior EventName="ImageOpened">
+                                        <Media:ControlStoryboardAction>
+                                            <Media:ControlStoryboardAction.Storyboard>
+                                                <Storyboard Storyboard.TargetName="coverImage" Storyboard.TargetProperty="Opacity">
+                                                    <DoubleAnimation From="0" To="1" Duration="0:0:0.5"/>
+                                                </Storyboard>
+                                            </Media:ControlStoryboardAction.Storyboard>
+                                        </Media:ControlStoryboardAction>
+                                    </Core:EventTriggerBehavior>
+                                </Interactivity:Interaction.Behaviors>
+                            </Image>
+                            <ProgressBar HorizontalAlignment="Center" Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Maximum="100" Value="{Binding Path=LoadProgress, UpdateSourceTrigger=Explicit}" VerticalAlignment="Center" Width="150"/>
+                            <TextBlock HorizontalAlignment="Center" Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Text="{Binding Path=LoadProgress, UpdateSourceTrigger=Explicit}" VerticalAlignment="Center" Margin="0,20,0,0"/>
+                        </Grid>
                         <TextBlock Text="{Binding Title}" TextAlignment="Center" FontSize="18" TextTrimming="CharacterEllipsis" FontWeight="Bold"/>
                         <TextBlock Text="{Binding Author}" TextAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis" FontWeight="Normal"/>
                     </StackPanel>
@@ -90,7 +107,7 @@
             </GridView.ItemTemplate>
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <ItemsStackPanel VerticalAlignment="Top" Orientation="Horizontal"/>
+                    <ItemsWrapGrid Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </GridView.ItemsPanel>
             <GridView.ItemContainerStyle>
