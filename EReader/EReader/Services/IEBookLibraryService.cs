@@ -12,5 +12,6 @@ namespace EReader.Services
         Task InsertBook(EReaderDocument document);
         Task<IEnumerable<EReaderDocument>> RetrieveBooks();
         Task<IEnumerable<EReaderDocument>> SearchBooks(string query);
+        Task UpdateBook(EReaderDocument book);
     }
 }

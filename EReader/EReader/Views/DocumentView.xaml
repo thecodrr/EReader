@@ -45,7 +45,7 @@
         <StackPanel x:Name="BookInfoPanel" VerticalAlignment="Center" Orientation="Vertical" Background="{ThemeResource SystemControlBackgroundAccentBrush}">
             <TextBlock Text="{Binding Path=Title}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
             <TextBlock Text="{Binding Path=Author}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal"/>
-            <ProgressBar Value="5" Foreground="Black" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
+            <ProgressBar Maximum="100" Name="readingProgress" Foreground="Black" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
         </StackPanel>
         <HyperlinkButton VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Black" HorizontalAlignment="Left">
             <SymbolIcon Symbol="Back"/>

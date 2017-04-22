@@ -105,7 +105,7 @@ namespace EReader.Epub
                 eBook.BookStyleCSS = await ReadCSSFiles();
 
                 //the is the html that holds the styles and all the other required structure.
-                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{margin:30px !important;}} img {{max-width: 100% !important;}}{0}</style></head><body>", eBook.BookStyleCSS);
+                string html = string.Format("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style>body{{margin:30px !important;}} img {{max-width: 100% !important;}}{0}</style><script type=\"text/javascript\">window.onscroll = function(){{var percent = (document.documentElement.scrollTop||document.body.scrollTop) / ((document.documentElement.scrollHeight||document.body.scrollHeight) - document.documentElement.clientHeight); window.external.notify(percent.toString());}}; function scrollTo(a,b,c){{if(!(c<=0)){{var d=b-a.scrollTop,e=d/c*10;setTimeout(function(){{a.scrollTop=a.scrollTop+e,a.scrollTop!==b&&scrollTo(a,b,c-10)}},10)}}}};</script></head><body>", eBook.BookStyleCSS);
 
                 //get the chapters. step 4
                 string chapters = await ParseChapterFiles(opfContent.Spine.Itemref, opfContent.Manifest.Item);

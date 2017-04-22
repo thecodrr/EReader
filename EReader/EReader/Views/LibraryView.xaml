@@ -67,7 +67,11 @@
 
             <Interactivity:Interaction.Behaviors>
                 <Core:EventTriggerBehavior EventName="ItemClick">
-                    <Core:NavigateToPageAction TargetPage="EReader.Views.DocumentView" Parameter="{Binding SelectedItem, ElementName=DocumentList}"/>
+                    <Core:NavigateToPageAction TargetPage="EReader.Views.DocumentView">
+                        <Core:NavigateToPageAction.Parameter>
+                            <Binding ElementName="DocumentsList" Path="SelectedItem"/>
+                        </Core:NavigateToPageAction.Parameter>
+                    </Core:NavigateToPageAction>
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
             <GridView.ItemTemplate>

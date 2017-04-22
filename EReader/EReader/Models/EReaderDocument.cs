@@ -25,7 +25,7 @@ namespace EReader.Models
         public StorageFile Document { get; set; }
 
         public string Description { get; set; }        
-
+        public double LastReadPosition { get; set; }
         public EReaderDocument()
         {
 

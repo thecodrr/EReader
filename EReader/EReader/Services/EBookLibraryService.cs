@@ -29,5 +29,10 @@ namespace EReader.Services
         {
             return await DatabaseService.QueryRecords<EReaderDocument>("Ebooks", query);
         }
+
+        public async Task UpdateBook(EReaderDocument book)
+        {
+            await DatabaseService.UpdateRecordAsync("Ebooks", book.Title + book.Author, book);
+        }
     }
 }
