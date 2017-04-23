@@ -67,8 +67,10 @@ namespace EReader.Views
             DocumentViewer.ScriptNotify += DocumentViewer_ScriptNotify;
 
             //register timer
-            saveReadingProgress = new DispatcherTimer();
-            saveReadingProgress.Interval = TimeSpan.FromSeconds(2);
+            saveReadingProgress = new DispatcherTimer()
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
             saveReadingProgress.Tick += SaveReadingProgress_Tick;
 
             //initiate library service
@@ -142,6 +144,8 @@ namespace EReader.Views
             //free up memory.
             DestroyWebView();            
             BookInfoPanel.DataContext = null;
+            tocList.DataContext = null;
+            tocList.ItemsSource = null;
 
             //run the GC to collect garbage.
             GC.Collect();
@@ -151,17 +155,12 @@ namespace EReader.Views
         {
             //cancel navigation because we do not want to navigate to another page.
             args.Cancel = true;
-            await ScrollToChapter(args.Uri.Fragment);
+            await DocumentViewer.ScrollToChapter(args.Uri.Fragment);
         }
-        private async Task ScrollToChapter(string link)
-        {
-            // string alternateScript = string.Format("var els = document.querySelectorAll(\"a[href~='{0}']\");var el = els[0];el.scrollIntoView();", args.Uri.Fragment.Replace("#", ""));
-            string functionString = String.Format("elmnt = document.getElementById('{0}'); scrollTo(document.body, elmnt.offsetTop, 600);", link.Replace("#", ""));
-            var res = await DocumentViewer.InvokeScriptAsync("eval", new string[] { functionString });
-        }
+      
         private async void tocList_ItemClick(object sender, ItemClickEventArgs e)
         {
-            await ScrollToChapter((e.ClickedItem as Chapter).ChapterLink);
+            await DocumentViewer.ScrollToChapter((e.ClickedItem as Chapter).ChapterLink);
         }
     }
 }
