@@ -39,32 +39,32 @@ namespace EReader.Helpers
         }
         public static async Task IncreaseFontSize(this WebView DocumentViewer)
         {
-            await DocumentViewer.InvokeScriptAsync("eval", new string[] { GetFontResizeFunction("+") });
+            await DocumentViewer.InvokeScriptAsync("eval", new string[] { GetFontResizeFunction("+", "-") });
         }
         public static async Task DecreaseFontSize(this WebView DocumentViewer)
         {
-            await DocumentViewer.InvokeScriptAsync("eval", new string[] { GetFontResizeFunction("-") });
+            await DocumentViewer.InvokeScriptAsync("eval", new string[] { GetFontResizeFunction("-", "+") });
         }
-        private static string GetFontResizeFunction(string sign)
+        private static string GetFontResizeFunction(string sign, string scrollSign)
         {
-            //basically we do the following things:
-            //1. save the scroll height of the reader.
-            //2. calculate the percentage scrolled
-            //3. calculate the actual scroll value
-            //4. change font size
-            //5. get the new scroll height
-            //6. get difference by dividing new and old height and then mulitplying by 110
-            //7. we scroll back to the original position. (there is a slight up/down of a few pixels).
-            return string.Format(
-                           "var oldHeight = document.body.scrollHeight;" +
-                           "var percent = (document.documentElement.scrollTop||document.body.scrollTop) / ((document.documentElement.scrollHeight||document.body.scrollHeight) - document.documentElement.clientHeight) * 100;" +
-                           "var offset = (percent / 100) * ((document.documentElement.scrollHeight||document.body.scrollHeight) - document.documentElement.clientHeight);" +
+            //change font size and maintain scroll position. 
+            //This is tricky and not very accurate, but does the job well.
+            string resizeScript = string.Format(
+                           "var oldHeight = document.body.scrollHeight; var scroll = document.body.scrollTop;" +
                            "var pElements = document.querySelector(\"p\");" +
                            "var style = window.getComputedStyle(pElements, null).getPropertyValue('font-size');" +
-                           "var currentSize = parseInt(style);currentSize{0}{0};document.body.style.fontSize = currentSize;" +
-                           "var newHeight = document.body.scrollHeight;" +
-                           "var difference = newHeight / oldHeight * 110;" +
-                           "scrollTo(document.body, offset {0} difference, 100);", sign);
+                           "var currentSize = parseInt(style);currentSize{0}{0};document.body.style.fontSize = currentSize;", sign);
+            if (Windows.Foundation.Metadata.ApiInformation.IsApiContractPresent("Windows.Phone.PhoneContract", 1))
+            {
+                resizeScript += string.Format("if(currentSize < 17)" +
+                            "scrollTo(document.body, ((scroll/oldHeight) * document.body.scrollHeight), 100);" +
+                            "else scrollTo(document.body, ((scroll/oldHeight) * document.body.scrollHeight) {0} 100, 100);", scrollSign);
+             } 
+            else
+            {
+                resizeScript += string.Format("scrollTo(document.body, ((scroll/oldHeight) * document.body.scrollHeight) {0} 250, 100);", scrollSign);
+            }
+            return resizeScript;
         }
     }
 }

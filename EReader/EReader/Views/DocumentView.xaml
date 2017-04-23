@@ -19,6 +19,8 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="DocumentViewer.Margin" Value="0"/>
+                        <Setter Target="TitleText.FontSize" Value="16"/>
+                        <Setter Target="AuthorText.FontSize" Value="13"/>
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -50,8 +52,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel x:Name="BookInfoPanel" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Orientation="Vertical">
-                <TextBlock Text="{Binding Path=Title}"  HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
-                <TextBlock Text="{Binding Path=Author}" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal"/>
+                <TextBlock Name="TitleText" Text="{Binding Path=Title}" TextTrimming="WordEllipsis"  HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+                <TextBlock Name="AuthorText" Text="{Binding Path=Author}" TextTrimming="WordEllipsis" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0">
                 <HyperlinkButton Foreground="Black">
@@ -114,9 +116,9 @@
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
         </WebView>
-        <Grid x:Name="TOCGrid" Opacity="0.7" Background="{ThemeResource SystemControlBackgroundAccentBrush}" Grid.Row="1" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5" >
+        <Grid x:Name="TOCGrid" Opacity="1" Background="{ThemeResource SystemControlBackgroundAccentBrush}" Grid.Row="1" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5" >
             <Grid.RenderTransform>
-                <CompositeTransform TranslateX="-300"/>
+                <CompositeTransform TranslateX="-400"/>
             </Grid.RenderTransform>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -129,7 +131,7 @@
                         <Media:ControlStoryboardAction >
                             <Media:ControlStoryboardAction.Storyboard>
                                 <Storyboard Storyboard.TargetName="TOCGrid" Storyboard.TargetProperty="(Grid.RenderTransform).TranslateX">
-                                    <DoubleAnimation To="-300" FillBehavior="HoldEnd" SpeedRatio="2" Duration="0:0:0.3"/>
+                                    <DoubleAnimation To="-400" FillBehavior="HoldEnd" SpeedRatio="2" Duration="0:0:0.3"/>
                                 </Storyboard>
                             </Media:ControlStoryboardAction.Storyboard>
                         </Media:ControlStoryboardAction>
