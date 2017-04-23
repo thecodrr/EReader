@@ -63,7 +63,7 @@
                         <Setter Target="DocumentList.ItemTemplate" Value="{StaticResource MobileEbookTemplate}"/>
                         <Setter Target="DocumentList.ItemsPanel" Value="{StaticResource MobileEbookItemsPanelTemplate}"/>
                         <Setter Target="titleTextBlock.Margin" Value="0,0,0,20"/>
-                        <Setter Target="AddNewFileButton.Height" Value="0,5,10,20"/>
+                        <Setter Target="AddNewFileButton.Margin" Value="0,5,10,20"/>
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
