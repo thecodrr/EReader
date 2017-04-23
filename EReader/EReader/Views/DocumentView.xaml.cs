@@ -162,5 +162,18 @@ namespace EReader.Views
         {
             await DocumentViewer.ScrollToChapter((e.ClickedItem as Chapter).ChapterLink);
         }
+
+        private async void FontIncreaseBtn_Click(object sender, RoutedEventArgs e)
+        {
+            switch((sender as HyperlinkButton).Name)
+            {
+                case "FontIncreaseBtn":
+                    await DocumentViewer.IncreaseFontSize();
+                    break;
+                case "FontDecreaseBtn":
+                    await DocumentViewer.DecreaseFontSize();
+                    break;
+            }
+        }
     }
 }
