@@ -13,12 +13,43 @@
     mc:Ignorable="d">
     <Page.Resources>
         <Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <DataTemplate x:Key="MobileEbookTemplate">
+            <StackPanel Width="150" Height="250" VerticalAlignment="Top">
+                <Grid Width="150" Height="200">
+                    <Image x:Name="coverImage" Opacity="0">
+                        <Image.Source>
+                            <BitmapImage UriSource="{Binding Path=CoverImageSource}" DecodePixelHeight="200" DecodePixelWidth="150">
+                            </BitmapImage>
+                        </Image.Source>
+                        <Interactivity:Interaction.Behaviors>
+                            <Core:EventTriggerBehavior EventName="ImageOpened">
+                                <Media:ControlStoryboardAction>
+                                    <Media:ControlStoryboardAction.Storyboard>
+                                        <Storyboard Storyboard.TargetName="coverImage" Storyboard.TargetProperty="Opacity">
+                                            <DoubleAnimation From="0" To="1" Duration="0:0:0.5"/>
+                                        </Storyboard>
+                                    </Media:ControlStoryboardAction.Storyboard>
+                                </Media:ControlStoryboardAction>
+                            </Core:EventTriggerBehavior>
+                        </Interactivity:Interaction.Behaviors>
+                    </Image>
+                    <ProgressBar HorizontalAlignment="Center" Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Maximum="100" Value="{Binding Path=LoadProgress, UpdateSourceTrigger=Explicit}" VerticalAlignment="Center" Width="150"/>
+                    <TextBlock HorizontalAlignment="Center" Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" Text="{Binding Path=LoadProgress, UpdateSourceTrigger=Explicit}" VerticalAlignment="Center" Margin="0,30,0,0"/>
+                </Grid>
+                <TextBlock Text="{Binding Title}" TextAlignment="Center" FontSize="18" TextTrimming="CharacterEllipsis" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Author}" TextAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis" FontWeight="Normal"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="MobileEbookItemsPanelTemplate">
+            <ItemsWrapGrid HorizontalAlignment="Center" Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
     </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.DataContext>
-        <ViewModels:LibraryViewModel/>
-    </Grid.DataContext>
+            <ViewModels:LibraryViewModel/>
+        </Grid.DataContext>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>
@@ -29,6 +60,10 @@
                         <Setter Target="titleTextBlock.FontSize" Value="26"/>
                         <Setter Target="AddNewFileButton.Width" Value="30"/>
                         <Setter Target="AddNewFileButton.Height" Value="30"/>
+                        <Setter Target="DocumentList.ItemTemplate" Value="{StaticResource MobileEbookTemplate}"/>
+                        <Setter Target="DocumentList.ItemsPanel" Value="{StaticResource MobileEbookItemsPanelTemplate}"/>
+                        <Setter Target="titleTextBlock.Margin" Value="0,0,0,20"/>
+                        <Setter Target="AddNewFileButton.Height" Value="0,5,10,20"/>
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -65,7 +100,7 @@
         <GridView x:Name="DocumentList"
                   ItemsSource="{Binding EReaderDocuments}"
                   SelectionMode="Single"
-                  IsItemClickEnabled="True" Margin="30,0"
+                  IsItemClickEnabled="True" Margin="0,0"
                   Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.HorizontalScrollMode="Disabled"

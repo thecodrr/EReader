@@ -1,22 +1,14 @@
-﻿using AngleSharp.Dom;
-using AngleSharp.Parser.Html;
+﻿using AngleSharp.Parser.Html;
 using EReader.Epub.Helpers;
 using EReader.Epub.Models;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Serialization;
 using Windows.Storage;
-using Windows.Storage.Search;
-using Windows.UI.Xaml;
 
 namespace EReader.Epub
 {

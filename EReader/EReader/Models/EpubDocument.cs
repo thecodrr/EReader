@@ -9,25 +9,8 @@ using Windows.Storage;
 namespace EReader.Models
 {
     public class EpubDocument : EReaderDocument
-    {
-        /// <summary>
-        /// Private Constructor. Why? Because we use factory pattern to initialize EpubDocument.
-        /// To avoid other classes calling this construction, we make it private.
-        /// </summary>
-        /// <param name="file"></param>
-        private EpubDocument(StorageFile file) : base(file) { }
-
-        /// <summary>
-        /// This is actually the constructor or to be specific an async method that acts
-        /// like a constructor. 
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public async static Task<EpubDocument> Create(StorageFile file)
-        {
-            var epubDoc = new EpubDocument(file);           
-            return epubDoc;
-        }
+    {       
+        public EpubDocument(StorageFile file) : base(file) { }
         public async Task LoadEpub(EpubDocument epubDoc, StorageFile file)
         {
             epubDoc.IsLoading = true;
@@ -43,6 +26,5 @@ namespace EReader.Models
             epubDoc.Description = book.epubBook.Metadata.Description;
             epubDoc.IsLoading = false;
         }
-        public List<Chapter> Chapters { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EReader.Epub.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,6 +55,8 @@ namespace EReader.Models
             get => loadProgress;
             set => Set(ref loadProgress, value);
         }
+        public List<Chapter> Chapters { get; set; }
+
         public EReaderDocument()
         {
 

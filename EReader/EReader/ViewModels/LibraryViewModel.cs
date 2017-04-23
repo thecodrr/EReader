@@ -46,12 +46,6 @@ namespace EReader.ViewModels
                 file.Document = await StorageFile.GetFileFromPathAsync(file.FilePath);
                 EReaderDocuments.Add(file);
             }
-            //ApplicationDataContainer fileAccessTokenContainer = ApplicationData.Current.LocalSettings.CreateContainer("FileAccessTokenContainer", ApplicationDataCreateDisposition.Always);
-            //foreach (var value in fileAccessTokenContainer.Values)
-            //{
-            //    var file = await StorageItemHelper.RetrieveStorageItemUsingAccessToken(value.Key);
-            //    EReaderDocuments.Add(await EpubDocument.Create((StorageFile)file));
-            //}
         }
 
         private void InitCommands()
@@ -67,7 +61,7 @@ namespace EReader.ViewModels
             if (eBookFile != null)
             {
                 eBookFile.SaveFileAccessToken();
-                var eBook = await EpubDocument.Create(eBookFile);
+                var eBook = new EpubDocument(eBookFile);
                 EReaderDocuments.Add(eBook);
                 await eBook.LoadEpub(eBook, eBookFile);
                 await EBookLibrary.InsertBook(eBook);

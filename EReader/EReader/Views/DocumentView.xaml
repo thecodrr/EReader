@@ -48,18 +48,23 @@
             <TextBlock Text="{Binding Path=Author}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal"/>
             <ProgressBar Maximum="100" Name="readingProgress" Foreground="Black" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
         </StackPanel>
-        <HyperlinkButton VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Black" HorizontalAlignment="Left">
-            <SymbolIcon Symbol="Back"/>
-            <Interactivity:Interaction.Behaviors>
-                <Core:EventTriggerBehavior EventName="Click">
-                    <Core:NavigateToPageAction TargetPage="EReader.Views.LibraryView">
-                        <Core:NavigateToPageAction.Parameter>
-                            <x:String>My eBook Library</x:String>
-                        </Core:NavigateToPageAction.Parameter>
-                    </Core:NavigateToPageAction>
-                </Core:EventTriggerBehavior>
-            </Interactivity:Interaction.Behaviors>
-        </HyperlinkButton>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left" Margin="20,0,0,0">
+            <HyperlinkButton Foreground="Black">
+                <SymbolIcon Symbol="Back"/>
+                <Interactivity:Interaction.Behaviors>
+                    <Core:EventTriggerBehavior EventName="Click">
+                        <Core:NavigateToPageAction TargetPage="EReader.Views.LibraryView">
+                            <Core:NavigateToPageAction.Parameter>
+                                <x:String>My eBook Library</x:String>
+                            </Core:NavigateToPageAction.Parameter>
+                        </Core:NavigateToPageAction>
+                    </Core:EventTriggerBehavior>
+                </Interactivity:Interaction.Behaviors>
+            </HyperlinkButton>
+            <HyperlinkButton Foreground="Black" Margin="20,0,0,0">
+                <SymbolIcon Symbol="List"/>               
+            </HyperlinkButton>
+        </StackPanel>
         <WebView Grid.Row="1" Opacity="0" x:Name="DocumentViewer" Margin="400,0,400,0">
             <Interactivity:Interaction.Behaviors>
                 <Core:EventTriggerBehavior EventName="LoadCompleted">
@@ -73,5 +78,30 @@
                 </Core:EventTriggerBehavior>
             </Interactivity:Interaction.Behaviors>
         </WebView>
+        <Grid Grid.Row="1" HorizontalAlignment="Left">
+            <ListView x:Name="tocList" IsItemClickEnabled="True" Width="400" ItemClick="tocList_ItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock >
+                                <Run Text="{Binding ChapterNo}"></Run>
+                                <Run Text="-"></Run>
+                                <Run Text="{Binding ChapterTitle}"></Run>
+                            </TextBlock>
+                            <ListView Width="300" IsItemClickEnabled="True" Margin="20,10,0,0" ItemClick="tocList_ItemClick" HorizontalAlignment="Right" ItemsSource="{Binding Path=Subchapters}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding ChapterTitle}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+        <ProgressBar x:Name="progressIndicator" IsIndeterminate="True" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="10" Background="Transparent"/>
     </Grid>
 </Page>

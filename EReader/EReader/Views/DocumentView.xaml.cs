@@ -1,5 +1,6 @@
 ﻿using EReader.Database;
 using EReader.Epub;
+using EReader.Epub.Models;
 using EReader.Helpers;
 using EReader.Models;
 using EReader.Services;
@@ -48,17 +49,18 @@ namespace EReader.Views
             //it doesn't take bindings very nicely.
             //This is the workaround.
             Book = (e.Parameter as ItemClickEventArgs).ClickedItem as EReaderDocument;
-
+            tocList.ItemsSource = Book.Chapters ?? null;
+            
             //construct URI
             var uri = Book.Document.ConstructApplicationUriFromStorageFile();
-
+            
             //set the datacontext before we load the book.
             BookInfoPanel.DataContext = Book;
-
+            
             //make a new uri for loading into webview
             var newUri = DocumentViewer.BuildLocalStreamUri(Book.Title, uri.AbsolutePath);
             DocumentViewer.NavigateToLocalStreamUri(newUri, new EReader.Common.StreamUriResolver());
-
+          
             //register events.
             DocumentViewer.NavigationStarting += DocumentViewer_NavigationStarting;
             DocumentViewer.LoadCompleted += DocumentViewer_LoadCompleted;
@@ -116,6 +118,9 @@ namespace EReader.Views
 
         private async void DocumentViewer_LoadCompleted(object sender, NavigationEventArgs e)
         {
+            //hide the progress
+            progressIndicator.Visibility = Visibility.Collapsed;
+
             //the book has loaded so start the save timer.
             saveReadingProgress.Start();            
 
@@ -146,9 +151,17 @@ namespace EReader.Views
         {
             //cancel navigation because we do not want to navigate to another page.
             args.Cancel = true;
+            await ScrollToChapter(args.Uri.Fragment);
+        }
+        private async Task ScrollToChapter(string link)
+        {
             // string alternateScript = string.Format("var els = document.querySelectorAll(\"a[href~='{0}']\");var el = els[0];el.scrollIntoView();", args.Uri.Fragment.Replace("#", ""));
-            string functionString = String.Format("elmnt = document.getElementById('{0}'); scrollTo(document.body, elmnt.offsetTop, 600);", args.Uri.Fragment.Replace("#", ""));
+            string functionString = String.Format("elmnt = document.getElementById('{0}'); scrollTo(document.body, elmnt.offsetTop, 600);", link.Replace("#", ""));
             var res = await DocumentViewer.InvokeScriptAsync("eval", new string[] { functionString });
+        }
+        private async void tocList_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            await ScrollToChapter((e.ClickedItem as Chapter).ChapterLink);
         }
     }
 }

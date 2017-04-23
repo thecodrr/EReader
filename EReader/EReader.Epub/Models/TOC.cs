@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Xml.Serialization;
-using Windows.Storage;
 
 namespace EReader.Epub.Models
-{  
+{
     [XmlRoot(ElementName = "docTitle", Namespace = "http://www.daisy.org/z3986/2005/ncx/")]
     public class DocTitle
     {
@@ -37,7 +31,7 @@ namespace EReader.Epub.Models
         public NavLabel NavLabel { get; set; }
         [XmlElement(ElementName = "content", Namespace = "http://www.daisy.org/z3986/2005/ncx/")]
         public Content Content { get; set; }
-        public string ChapterLink { get { return Content.Src; } }
+        public string ChapterLink { get { return HtmlRepairer.HtmlRepairer.RepairLink(Content.Src); } }
         public string ChapterTitle { get { return NavLabel.Text; } }
         [XmlAttribute(AttributeName = "id")]
         public string Id { get; set; }
