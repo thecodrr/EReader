@@ -175,5 +175,18 @@ namespace EReader.Views
                     break;
             }
         }
+
+        private async void ToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            switch(ThemeBtn.IsChecked)
+            {
+                case true:
+                    await DocumentViewer.SetTheme("Dark");
+                    break;
+                case false:
+                    await DocumentViewer.SetTheme("Light");
+                    break;
+            }
+        }
     }
 }
