@@ -120,14 +120,14 @@ namespace EReader.Views
 
         private async void DocumentViewer_LoadCompleted(object sender, NavigationEventArgs e)
         {
+           //load the reading progress.
+            await LoadReadingProgress();
+
             //hide the progress
             progressIndicator.Visibility = Visibility.Collapsed;
 
             //the book has loaded so start the save timer.
-            saveReadingProgress.Start();            
-
-            //load the reading progress.
-            await LoadReadingProgress();
+            saveReadingProgress.Start();     
         }
         
         protected async override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -165,15 +165,7 @@ namespace EReader.Views
 
         private async void FontIncreaseBtn_Click(object sender, RoutedEventArgs e)
         {
-            switch((sender as HyperlinkButton).Name)
-            {
-                case "FontIncreaseBtn":
-                    await DocumentViewer.IncreaseFontSize();
-                    break;
-                case "FontDecreaseBtn":
-                    await DocumentViewer.DecreaseFontSize();
-                    break;
-            }
+            await DocumentViewer.IncreaseFontSize();            
         }
 
         private async void ToggleButton_Click(object sender, RoutedEventArgs e)

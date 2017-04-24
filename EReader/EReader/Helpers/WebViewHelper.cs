@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace EReader.Helpers
@@ -31,9 +32,11 @@ namespace EReader.Helpers
             {
                 case false:
                     await ChangeTheme(DocumentViewer, "#2b2b2b", "#dbdbdb");
+                    (Window.Current.Content as Frame).RequestedTheme = ElementTheme.Dark;
                     break;
                 case true:
                     await ChangeTheme(DocumentViewer, "#ffffff", "#1b1b1b");
+                    (Window.Current.Content as Frame).RequestedTheme = ElementTheme.Light;
                     break;
             }
         }

@@ -57,13 +57,12 @@
                         <AdaptiveTrigger MinWindowWidth="0"/>
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="titleTextBlock.FontSize" Value="26"/>
+                        <Setter Target="titleTextBlock.FontSize" Value="20"/>
                         <Setter Target="AddNewFileButton.Width" Value="30"/>
                         <Setter Target="AddNewFileButton.Height" Value="30"/>
                         <Setter Target="DocumentList.ItemTemplate" Value="{StaticResource MobileEbookTemplate}"/>
                         <Setter Target="DocumentList.ItemsPanel" Value="{StaticResource MobileEbookItemsPanelTemplate}"/>
-                        <Setter Target="titleTextBlock.Margin" Value="0,0,0,20"/>
-                        <Setter Target="AddNewFileButton.Margin" Value="0,5,10,20"/>
+                       
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -71,7 +70,7 @@
                         <AdaptiveTrigger MinWindowWidth="600"/>
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="titleTextBlock.FontSize" Value="30"/>
+                        <Setter Target="titleTextBlock.FontSize" Value="25"/>
                         <Setter Target="AddNewFileButton.Width" Value="36"/>
                         <Setter Target="AddNewFileButton.Height" Value="36"/>
                     </VisualState.Setters>
@@ -93,14 +92,16 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="titleTextBlock" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10" Text="My eBook Library" HorizontalAlignment="Center" FontSize="36" FontWeight="Bold"/>
-        <HyperlinkButton x:Name="AddNewFileButton" Width="50" HorizontalAlignment="Right" Height="50" Margin="0,15,10,10" Command="{Binding AddBookCommand}">
-            <SymbolIcon Symbol="Add"/>
-        </HyperlinkButton>
+        <Grid Background="{ThemeResource SystemControlBackgroundAccentBrush}"  Height="60">
+            <TextBlock x:Name="titleTextBlock" Text="My eBook Library" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" FontWeight="Bold"/>
+            <HyperlinkButton x:Name="AddNewFileButton" Margin="0,0,10,0"  Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Width="50" HorizontalAlignment="Right" Height="50" VerticalAlignment="Center" Command="{Binding AddBookCommand}">
+                <SymbolIcon Symbol="Add"/>
+            </HyperlinkButton>
+        </Grid>
         <GridView x:Name="DocumentList"
                   ItemsSource="{Binding EReaderDocuments}"
                   SelectionMode="Single"
-                  IsItemClickEnabled="True" Margin="0,0"
+                  IsItemClickEnabled="True" Margin="0,30,0,0"
                   Grid.Row="1"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.HorizontalScrollMode="Disabled"
